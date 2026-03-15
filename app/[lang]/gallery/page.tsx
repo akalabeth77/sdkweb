@@ -1,4 +1,4 @@
-import { client } from '@/lib/sanity.client';
+import { safeFetch } from '@/lib/sanity.client';
 import { galleryQuery } from '@/lib/queries';
 import { urlFor } from '@/lib/sanity.image';
 import type { SanityImageSource } from '@sanity/image-url/lib/types/types';
@@ -11,7 +11,7 @@ type GalleryItem = {
 };
 
 export default async function GalleryPage() {
-  const galleries = await client.fetch<GalleryItem[]>(galleryQuery);
+  const galleries = await safeFetch<GalleryItem[]>(galleryQuery, {}, []);
   return (
     <section className="space-y-4">
       <h1 className="text-3xl font-bold">Gallery</h1>

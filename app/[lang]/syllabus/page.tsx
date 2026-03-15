@@ -1,9 +1,9 @@
-import { client } from '@/lib/sanity.client';
+import { safeFetch } from '@/lib/sanity.client';
 import { syllabusQuery } from '@/lib/queries';
 import { Locale } from '@/lib/i18n';
 
 export default async function SyllabusPage({ params }: { params: { lang: Locale } }) {
-  const levels = await client.fetch(syllabusQuery);
+  const levels = await safeFetch<any[]>(syllabusQuery, {}, []);
   return (
     <section className="space-y-4">
       <h1 className="text-3xl font-bold">Collegiate Shag Syllabus</h1>

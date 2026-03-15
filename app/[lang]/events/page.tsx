@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { client } from '@/lib/sanity.client';
+import { safeFetch } from '@/lib/sanity.client';
 import { eventsQuery } from '@/lib/queries';
 import { Event } from '@/types';
 import { Locale } from '@/lib/i18n';
@@ -12,7 +12,7 @@ export default async function EventsPage({
   params: { lang: Locale };
   searchParams: { type?: string; style?: string };
 }) {
-  const events: Event[] = await client.fetch(eventsQuery);
+  const events: Event[] = await safeFetch<Event[]>(eventsQuery, {}, []);
   const filtered = events.filter((e) => (!searchParams.type || e.eventType === searchParams.type) && (!searchParams.style || e.danceStyle === searchParams.style));
 
   return (

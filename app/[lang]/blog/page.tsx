@@ -1,11 +1,11 @@
 import Link from 'next/link';
-import { client } from '@/lib/sanity.client';
+import { safeFetch } from '@/lib/sanity.client';
 import { blogQuery } from '@/lib/queries';
 import { Locale } from '@/lib/i18n';
 import { BlogPost } from '@/types';
 
 export default async function BlogPage({ params }: { params: { lang: Locale } }) {
-  const posts: BlogPost[] = await client.fetch(blogQuery);
+  const posts: BlogPost[] = await safeFetch<BlogPost[]>(blogQuery, {}, []);
   return (
     <section className="space-y-4">
       <h1 className="text-3xl font-bold">Blog</h1>

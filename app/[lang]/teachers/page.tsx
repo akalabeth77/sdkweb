@@ -1,4 +1,4 @@
-import { client } from '@/lib/sanity.client';
+import { safeFetch } from '@/lib/sanity.client';
 import { teachersQuery } from '@/lib/queries';
 import { Locale } from '@/lib/i18n';
 import { Teacher } from '@/types';
@@ -6,7 +6,7 @@ import { urlFor } from '@/lib/sanity.image';
 import Image from 'next/image';
 
 export default async function TeachersPage({ params }: { params: { lang: Locale } }) {
-  const teachers: Teacher[] = await client.fetch(teachersQuery);
+  const teachers: Teacher[] = await safeFetch<Teacher[]>(teachersQuery, {}, []);
   return (
     <section className="space-y-4">
       <h1 className="text-3xl font-bold">{params.lang === 'sk' ? 'Lektori' : 'Teachers'}</h1>

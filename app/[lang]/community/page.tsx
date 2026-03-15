@@ -1,9 +1,9 @@
-import { client } from '@/lib/sanity.client';
+import { safeFetch } from '@/lib/sanity.client';
 import { communityQuery } from '@/lib/queries';
 import { Locale } from '@/lib/i18n';
 
 export default async function CommunityPage({ params }: { params: { lang: Locale } }) {
-  const data = await client.fetch(communityQuery);
+  const data = await safeFetch<{ communitySections?: any[] }>(communityQuery, {}, {});
   const sections = data?.communitySections || [];
   return (
     <section className="space-y-4">

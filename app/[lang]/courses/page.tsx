@@ -1,10 +1,10 @@
-import { client } from '@/lib/sanity.client';
+import { safeFetch } from '@/lib/sanity.client';
 import { coursesQuery } from '@/lib/queries';
 import { Course } from '@/types';
 import { Locale } from '@/lib/i18n';
 
 export default async function CoursesPage({ params }: { params: { lang: Locale } }) {
-  const courses: Course[] = await client.fetch(coursesQuery);
+  const courses: Course[] = await safeFetch<Course[]>(coursesQuery, {}, []);
   return (
     <section className="space-y-4">
       <h1 className="text-3xl font-bold">{params.lang === 'sk' ? 'Kurzy' : 'Courses'}</h1>

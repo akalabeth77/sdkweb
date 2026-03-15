@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import { client } from '@/lib/sanity.client';
+import { safeFetch } from '@/lib/sanity.client';
 import { eventBySlugQuery } from '@/lib/queries';
 
 export async function GET(_: Request, { params }: { params: { slug: string } }) {
-  const event = await client.fetch(eventBySlugQuery, { slug: params.slug });
+  const event = await safeFetch<Record<string, any> | null>(eventBySlugQuery, { slug: params.slug }, null);
   if (!event) return new NextResponse('Not found', { status: 404 });
 
   const start = new Date(event.date).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';

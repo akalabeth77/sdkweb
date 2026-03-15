@@ -1,4 +1,4 @@
-import { client } from '@/lib/sanity.client';
+import { safeFetch } from '@/lib/sanity.client';
 import { eventBySlugQuery } from '@/lib/queries';
 import { Locale } from '@/lib/i18n';
 import { urlFor } from '@/lib/sanity.image';
@@ -6,7 +6,7 @@ import Image from 'next/image';
 import Script from 'next/script';
 
 export default async function EventDetail({ params }: { params: { lang: Locale; slug: string } }) {
-  const event = await client.fetch(eventBySlugQuery, { slug: params.slug });
+  const event = await safeFetch<Record<string, any> | null>(eventBySlugQuery, { slug: params.slug }, null);
   const title = event?.title?.[params.lang] || '';
   return (
     <article className="space-y-4">
