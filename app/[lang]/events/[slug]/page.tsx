@@ -2,6 +2,7 @@ import { client } from '@/lib/sanity.client';
 import { eventBySlugQuery } from '@/lib/queries';
 import { Locale } from '@/lib/i18n';
 import { urlFor } from '@/lib/sanity.image';
+import Image from 'next/image';
 import Script from 'next/script';
 
 export default async function EventDetail({ params }: { params: { lang: Locale; slug: string } }) {
@@ -9,7 +10,15 @@ export default async function EventDetail({ params }: { params: { lang: Locale; 
   const title = event?.title?.[params.lang] || '';
   return (
     <article className="space-y-4">
-      {event?.coverImage && <img src={urlFor(event.coverImage).width(1400).url()} alt={title} className="h-80 w-full rounded-3xl object-cover" />}
+      {event?.coverImage && (
+        <Image
+          src={urlFor(event.coverImage).width(1400).height(640).url()}
+          alt={title}
+          width={1400}
+          height={640}
+          className="h-80 w-full rounded-3xl object-cover"
+        />
+      )}
       <h1 className="text-3xl font-bold">{title}</h1>
       <p>{event?.description?.[params.lang]}</p>
       <p>{new Date(event?.date).toLocaleString(params.lang)}</p>
