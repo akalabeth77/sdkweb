@@ -1,12 +1,12 @@
 import { Hero } from '@/components/Hero';
 import { EventCard } from '@/components/EventCard';
 import { Locale } from '@/lib/i18n';
-import { client } from '@/lib/sanity.client';
+import { safeFetch } from '@/lib/sanity.client';
 import { homeQuery } from '@/lib/queries';
 import { Event } from '@/types';
 
 export default async function HomePage({ params }: { params: { lang: Locale } }) {
-  const data = await client.fetch(homeQuery);
+  const data = await safeFetch<{ settings?: { introText?: Record<Locale, string>; heroVideoUrl?: string; heroImageUrl?: string }; upcomingEvents?: Event[] }>(homeQuery, {}, {});
   return (
     <div className="space-y-8">
       <Hero lang={params.lang} intro={data?.settings?.introText?.[params.lang]} mediaUrl={data?.settings?.heroVideoUrl || data?.settings?.heroImageUrl} />
