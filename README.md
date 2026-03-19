@@ -22,6 +22,13 @@ cp .env.example .env.local
 npm run dev
 ```
 
+## Facebook integration
+
+- Add `FACEBOOK_ACCESS_TOKEN` to `.env.local` to load the latest Facebook posts server-side on the community page.
+- `FACEBOOK_PAGE_ID` is optional; if omitted, the app tries to discover the first manageable Facebook page from the token.
+- `NEXT_PUBLIC_FACEBOOK_PAGE_URL` controls the public CTA link shown next to the Facebook feed.
+- Keep the token only in `.env.local`; it is ignored by git and never exposed to the browser.
+
 ## Authentication module
 
 - Login page: `/auth/signin`
