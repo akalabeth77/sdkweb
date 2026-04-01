@@ -10,8 +10,21 @@ Tento repozitár obsahuje funkčný MVP portál pre swing komunitu podľa pôvod
 ## Tech stack (free-friendly)
 - **Next.js 14 + TypeScript**
 - **NextAuth.js** (credentials + Google OAuth)
+- **Prisma ORM** + **PostgreSQL** (Supabase / Neon free tier)
 - **Zod** validácia API vstupov
 - nasadenie na **Vercel Free**
+
+## Nastavenie databázy (Supabase / Neon)
+
+1. Vytvor projekt na [supabase.com](https://supabase.com) alebo [neon.tech](https://neon.tech)
+2. Skopíruj connection string (formát `postgresql://...`) do `.env.local`
+3. Spusti setup skript a inicializuj schému:
+   ```bash
+   node setup-prisma.js
+   npm install
+   npx prisma generate
+   npx prisma db push
+   ```
 
 ## Spustenie lokálne
 ```bash
@@ -28,6 +41,9 @@ npm run dev
 ```bash
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=replace-with-long-random-secret
+
+# Databáza (Supabase / Neon)
+DATABASE_URL=postgresql://USER:PASSWORD@HOST:5432/DATABASE?sslmode=require
 
 # Voliteľné: Google OAuth login
 GOOGLE_CLIENT_ID=
@@ -49,10 +65,8 @@ GCAL_API_KEY=
 Ak externé API kľúče nie sú nastavené, portál stále funguje s internými fallback dátami.
 
 ## Dôležitá poznámka k úložisku
-MVP ukladá nové články do `/tmp` (ephemeral storage), čo je vhodné na demo/prototyp.
-Pre produkciu odporúčané free varianty:
-- **Supabase (Postgres free tier)** alebo
-- **Neon (Postgres free tier)**.
+Články sú uložené v **PostgreSQL databáze** cez Prisma ORM.
+Pre nasadenie na Vercel nastav `DATABASE_URL` ako environment variable.
 
 ## Build pre Vercel
 ```bash

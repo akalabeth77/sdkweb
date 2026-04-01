@@ -1,31 +1,35 @@
-import { promises as fs } from 'fs';
-import path from 'path';
 import { Article } from '@/types';
-
-const tmpPath = '/tmp/swing-articles.json';
-const fallbackPath = path.join(process.cwd(), 'lib', 'seed-articles.json');
-
-async function readFileSafe(filePath: string): Promise<Article[]> {
-  try {
-    const raw = await fs.readFile(filePath, 'utf8');
-    return JSON.parse(raw) as Article[];
-  } catch {
-    return [];
-  }
-}
+import { prisma } from './db';
+import seedArticles from './seed-articles.json';
 
 export async function getArticles(): Promise<Article[]> {
-  const tmpArticles = await readFileSafe(tmpPath);
-  if (tmpArticles.length > 0) {
-    return tmpArticles;
+  const rows = await prisma.article.findMany({ orderBy: { createdAt: 'desc' } });
+
+  if (rows.length === 0) {
+    return (seedArticles as Article[]).sort((a, b) =>
+      b.createdAt.localeCompare(a.createdAt)
+    );
   }
 
-  const seed = await readFileSafe(fallbackPath);
-  return seed.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  return rows.map((row) => ({
+    id: row.id,
+    title: row.title,
+    content: row.content,
+    author: row.author,
+    createdAt: row.createdAt.toISOString(),
+    status: row.status as 'draft' | 'published',
+  }));
 }
 
 export async function saveArticle(article: Article): Promise<void> {
-  const existing = await getArticles();
-  const next = [article, ...existing];
-  await fs.writeFile(tmpPath, JSON.stringify(next, null, 2), 'utf8');
+  await prisma.article.create({
+    data: {
+      id: article.id,
+      title: article.title,
+      content: article.content,
+      author: article.author,
+      createdAt: new Date(article.createdAt),
+      status: article.status,
+    },
+  });
 }
