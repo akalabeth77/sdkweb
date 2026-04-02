@@ -3,7 +3,14 @@ import { prisma } from './db';
 import seedArticles from './seed-articles.json';
 
 export async function getArticles(): Promise<Article[]> {
-  const rows = await prisma.article.findMany({ orderBy: { createdAt: 'desc' } });
+  const rows: Array<{
+    id: string;
+    title: string;
+    content: string;
+    author: string;
+    createdAt: Date;
+    status: string;
+  }> = await prisma.article.findMany({ orderBy: { createdAt: 'desc' } });
 
   if (rows.length === 0) {
     return (seedArticles as Article[]).sort((a, b) =>
