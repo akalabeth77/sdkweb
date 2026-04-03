@@ -90,6 +90,12 @@ Ak `NEXTAUTH_SECRET` chýba, NextAuth v produkcii vráti chybu `Configuration` a
 - `/admin/gallery` - vytvorenie a editácia interných položiek galérie
 - `/admin/users` - schvaľovanie registrácií používateľov (iba admin)
 
+### Albumy v galérii
+Editor galérie podporuje aj albumové zdroje:
+- `instagram` - zadaj Instagram Business account ID; potrebuje `IG_ACCESS_TOKEN`
+- `google-drive` - zadaj verejný Google Drive folder URL alebo folder ID; potrebuje `GOOGLE_DRIVE_API_KEY`
+- `local-folder` - zadaj relatívnu cestu pod `LOCAL_GALLERY_ROOT`; vhodné pre lokálny/self-hosted server, nie pre trvalé úložisko na Vercel
+
 ## Registrácia používateľov
 - Verejná registrácia: `/register`
 - Nový účet má stav `pending` a prihlásenie je možné až po schválení adminom.

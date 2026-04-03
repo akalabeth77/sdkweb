@@ -1,7 +1,7 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
-import { MediaItem } from '@/types';
+import { GalleryAlbum, GalleryAlbumSource, MediaItem } from '@/types';
 import Image from 'next/image';
 import { useLanguage } from '@/components/language-context';
 import { getSourceLabel } from '@/lib/i18n';
@@ -11,8 +11,16 @@ type MediaForm = {
   caption?: string;
 };
 
+type AlbumForm = {
+  title: string;
+  sourceType: GalleryAlbumSource;
+  sourceRef: string;
+  isActive: boolean;
+};
+
 export default function AdminGalleryPage() {
   const [media, setMedia] = useState<MediaItem[]>([]);
+  const [albums, setAlbums] = useState<GalleryAlbum[]>([]);
   const [message, setMessage] = useState('');
   const { locale, t } = useLanguage();
 
@@ -23,8 +31,16 @@ export default function AdminGalleryPage() {
     setMedia(payload);
   }
 
+  async function loadAlbums() {
+    const response = await fetch('/api/admin/gallery-albums', { cache: 'no-store' });
+    if (!response.ok) return;
+    const payload = (await response.json()) as GalleryAlbum[];
+    setAlbums(payload);
+  }
+
   useEffect(() => {
     void loadMedia();
+    void loadAlbums();
   }, []);
 
   async function createMedia(event: FormEvent<HTMLFormElement>) {
@@ -48,6 +64,31 @@ export default function AdminGalleryPage() {
     }
 
     setMessage(t.admin.galleryCreateError);
+  }
+
+  async function createAlbum(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+
+    const response = await fetch('/api/admin/gallery-albums', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: formData.get('title'),
+        sourceType: formData.get('sourceType'),
+        sourceRef: formData.get('sourceRef'),
+        isActive: formData.get('isActive') === 'on',
+      })
+    });
+
+    if (response.ok) {
+      setMessage(t.admin.galleryAlbumCreated);
+      event.currentTarget.reset();
+      await loadAlbums();
+      return;
+    }
+
+    setMessage(t.admin.galleryAlbumCreateError);
   }
 
   async function updateMedia(id: string, data: MediaForm) {
@@ -84,6 +125,40 @@ export default function AdminGalleryPage() {
     setMessage(t.admin.galleryDeleteError);
   }
 
+  async function updateAlbum(id: string, data: AlbumForm) {
+    const response = await fetch(`/api/admin/gallery-albums/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+
+    if (response.ok) {
+      setMessage(t.admin.galleryAlbumUpdated);
+      await loadAlbums();
+      return;
+    }
+
+    setMessage(t.admin.galleryAlbumUpdateError);
+  }
+
+  async function deleteAlbum(id: string) {
+    if (!window.confirm(t.admin.confirmDeleteGalleryAlbum)) {
+      return;
+    }
+
+    const response = await fetch(`/api/admin/gallery-albums/${id}`, {
+      method: 'DELETE'
+    });
+
+    if (response.ok) {
+      setMessage(t.admin.galleryAlbumDeleted);
+      await loadAlbums();
+      return;
+    }
+
+    setMessage(t.admin.galleryAlbumDeleteError);
+  }
+
   return (
     <section className="card">
       <h1>{t.admin.galleryTitle}</h1>
@@ -93,7 +168,35 @@ export default function AdminGalleryPage() {
         <button type="submit">{t.admin.createGalleryItem}</button>
       </form>
 
+      <h2 style={{ marginTop: '1.5rem' }}>{t.admin.galleryAlbumsTitle}</h2>
+      <form onSubmit={createAlbum}>
+        <label>{t.admin.galleryAlbumName}<input name="title" required /></label>
+        <label>{t.admin.galleryAlbumType}
+          <select name="sourceType" defaultValue="instagram">
+            <option value="instagram">Instagram account ID</option>
+            <option value="google-drive">Google Drive folder</option>
+            <option value="local-folder">Local folder</option>
+          </select>
+        </label>
+        <label>{t.admin.galleryAlbumSourceRef}<input name="sourceRef" required /></label>
+        <p className="small">Instagram: account ID. Google Drive: public folder URL alebo folder ID. Local folder: relatívna cesta pod LOCAL_GALLERY_ROOT.</p>
+        <label><input name="isActive" type="checkbox" defaultChecked /> {t.admin.galleryAlbumActive}</label>
+        <button type="submit">{t.admin.createGalleryAlbum}</button>
+      </form>
+
       {message ? <p className="small">{message}</p> : null}
+
+      <h2 style={{ marginTop: '1.5rem' }}>{t.admin.existingGalleryAlbums}</h2>
+      <div className="grid" style={{ gap: '1rem' }}>
+        {albums.map((album) => (
+          <EditableAlbumCard
+            key={album.id}
+            album={album}
+            onSave={updateAlbum}
+            onDelete={deleteAlbum}
+          />
+        ))}
+      </div>
 
       <h2 style={{ marginTop: '1.5rem' }}>{t.admin.existingGalleryItems}</h2>
       <div className="grid" style={{ gap: '1rem' }}>
@@ -107,6 +210,49 @@ export default function AdminGalleryPage() {
         ))}
       </div>
     </section>
+  );
+}
+
+function EditableAlbumCard({
+  album,
+  onSave,
+  onDelete,
+}: {
+  album: GalleryAlbum;
+  onSave: (id: string, data: AlbumForm) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
+}) {
+  const [title, setTitle] = useState(album.title);
+  const [sourceType, setSourceType] = useState<GalleryAlbumSource>(album.sourceType);
+  const [sourceRef, setSourceRef] = useState(album.sourceRef);
+  const [isActive, setIsActive] = useState(album.isActive);
+  const { t } = useLanguage();
+
+  return (
+    <form
+      className="card"
+      onSubmit={async (event) => {
+        event.preventDefault();
+        await onSave(album.id, { title, sourceType, sourceRef, isActive });
+      }}
+    >
+      <label>{t.admin.galleryAlbumName}
+        <input value={title} onChange={(event) => setTitle(event.target.value)} required />
+      </label>
+      <label>{t.admin.galleryAlbumType}
+        <select value={sourceType} onChange={(event) => setSourceType(event.target.value as GalleryAlbumSource)}>
+          <option value="instagram">Instagram account ID</option>
+          <option value="google-drive">Google Drive folder</option>
+          <option value="local-folder">Local folder</option>
+        </select>
+      </label>
+      <label>{t.admin.galleryAlbumSourceRef}
+        <input value={sourceRef} onChange={(event) => setSourceRef(event.target.value)} required />
+      </label>
+      <label><input type="checkbox" checked={isActive} onChange={(event) => setIsActive(event.target.checked)} /> {t.admin.galleryAlbumActive}</label>
+      <button type="submit">{t.common.save}</button>
+      <button type="button" onClick={() => void onDelete(album.id)}>{t.common.delete}</button>
+    </form>
   );
 }
 

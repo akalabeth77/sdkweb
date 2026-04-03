@@ -1,4 +1,4 @@
-import { Article, EventItem, MediaItem } from '@/types';
+import { Article, EventItem, GalleryAlbum, GalleryAlbumSource, MediaItem } from '@/types';
 import { prisma } from './db';
 import seedArticles from './seed-articles.json';
 
@@ -225,4 +225,76 @@ export async function deleteInternalMedia(id: string): Promise<void> {
   }
 
   await prisma.internalMedia.delete({ where: { id } });
+}
+
+export async function getGalleryAlbums(): Promise<GalleryAlbum[]> {
+  if (!process.env.DATABASE_URL) {
+    return [];
+  }
+
+  try {
+    const rows: Array<{
+      id: string;
+      title: string;
+      sourceType: string;
+      sourceRef: string;
+      isActive: boolean;
+      createdAt: Date;
+    }> = await prisma.galleryAlbum.findMany({ orderBy: { createdAt: 'desc' } });
+
+    return rows.map((row) => ({
+      id: row.id,
+      title: row.title,
+      sourceType: row.sourceType as GalleryAlbumSource,
+      sourceRef: row.sourceRef,
+      isActive: row.isActive,
+      createdAt: row.createdAt.toISOString(),
+    }));
+  } catch (error) {
+    if (shouldFallbackToSeed(error)) {
+      return [];
+    }
+
+    throw error;
+  }
+}
+
+export async function saveGalleryAlbum(album: Omit<GalleryAlbum, 'createdAt'>): Promise<void> {
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL is not configured.');
+  }
+
+  await prisma.galleryAlbum.create({
+    data: {
+      id: album.id,
+      title: album.title,
+      sourceType: album.sourceType,
+      sourceRef: album.sourceRef,
+      isActive: album.isActive,
+    },
+  });
+}
+
+export async function updateGalleryAlbum(id: string, album: Omit<GalleryAlbum, 'id' | 'createdAt'>): Promise<void> {
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL is not configured.');
+  }
+
+  await prisma.galleryAlbum.update({
+    where: { id },
+    data: {
+      title: album.title,
+      sourceType: album.sourceType,
+      sourceRef: album.sourceRef,
+      isActive: album.isActive,
+    },
+  });
+}
+
+export async function deleteGalleryAlbum(id: string): Promise<void> {
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL is not configured.');
+  }
+
+  await prisma.galleryAlbum.delete({ where: { id } });
 }

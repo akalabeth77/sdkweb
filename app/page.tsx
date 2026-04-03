@@ -56,7 +56,7 @@ export default async function HomePage() {
                 sizes="(max-width: 768px) 100vw, 50vw"
                 style={{ width: '100%', height: 'auto' }}
               />
-              <figcaption className="small">{item.caption}</figcaption>
+              <figcaption className="small">{item.caption}{item.albumTitle ? ` · ${item.albumTitle}` : ''}</figcaption>
             </figure>
           ))}
         </div>

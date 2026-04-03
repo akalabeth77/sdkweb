@@ -22,5 +22,17 @@ export interface MediaItem {
   id: string;
   imageUrl: string;
   caption?: string;
+  albumTitle?: string;
   source: 'instagram' | 'facebook' | 'internal';
+}
+
+export type GalleryAlbumSource = 'instagram' | 'google-drive' | 'local-folder';
+
+export interface GalleryAlbum {
+  id: string;
+  title: string;
+  sourceType: GalleryAlbumSource;
+  sourceRef: string;
+  isActive: boolean;
+  createdAt: string;
 }

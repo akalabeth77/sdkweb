@@ -23,7 +23,7 @@ export default async function GalleryPage() {
               sizes="(max-width: 768px) 100vw, 50vw"
               style={{ width: '100%', height: 'auto' }}
             />
-            <figcaption className="small">{item.caption} ({getSourceLabel(locale, item.source)})</figcaption>
+            <figcaption className="small">{item.caption}{item.albumTitle ? ` · ${item.albumTitle}` : ''} ({getSourceLabel(locale, item.source)})</figcaption>
           </figure>
         ))}
       </div>

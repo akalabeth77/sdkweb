@@ -52,3 +52,14 @@ model AppUser {
 
   @@map("app_users")
 }
+
+model GalleryAlbum {
+  id         String   @id
+  title      String
+  sourceType String
+  sourceRef  String
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+
+  @@map("gallery_albums")
+}

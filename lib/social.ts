@@ -1,5 +1,6 @@
 import { EventItem, MediaItem } from '@/types';
-import { getInternalEvents, getInternalMedia } from './store';
+import { getGalleryAlbums, getInternalEvents, getInternalMedia } from './store';
+import { fetchAlbumMedia } from './gallery-sources';
 
 const fallbackEvents: EventItem[] = [
   {
@@ -81,18 +82,21 @@ export async function fetchGoogleCalendarEvents(): Promise<EventItem[]> {
 }
 
 export async function fetchPortalData() {
-  const [fbEvents, igMedia, gEvents, internalEvents, internalMedia] = await Promise.all([
+  const [fbEvents, igMedia, gEvents, internalEvents, internalMedia, albums] = await Promise.all([
     fetchFacebookEvents(),
     fetchInstagramMedia(),
     fetchGoogleCalendarEvents(),
     getInternalEvents(),
-    getInternalMedia()
+    getInternalMedia(),
+    getGalleryAlbums()
   ]);
+
+  const albumMedia = (await Promise.all(albums.map((album) => fetchAlbumMedia(album)))).flat();
 
   return {
     events: [...fbEvents, ...gEvents, ...internalEvents, ...fallbackEvents]
       .sort((a, b) => a.start.localeCompare(b.start))
       .slice(0, 20),
-    media: [...internalMedia, ...igMedia, ...fallbackMedia].slice(0, 24)
+    media: [...internalMedia, ...albumMedia, ...igMedia, ...fallbackMedia].slice(0, 24)
   };
 }
