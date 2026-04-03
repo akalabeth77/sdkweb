@@ -6,6 +6,14 @@ type PrismaErrorLike = {
   code?: string;
 };
 
+function getPrismaErrorCode(error: unknown): string | undefined {
+  if (!error || typeof error !== 'object') {
+    return undefined;
+  }
+
+  return (error as PrismaErrorLike).code;
+}
+
 function getSeedArticles(): Article[] {
   return (seedArticles as Article[]).sort((a, b) =>
     b.createdAt.localeCompare(a.createdAt)
@@ -132,16 +140,24 @@ export async function saveInternalEvent(event: Omit<EventItem, 'source'>): Promi
     throw new Error('DATABASE_URL is not configured.');
   }
 
-  await prisma.internalEvent.create({
-    data: {
-      id: event.id,
-      title: event.title,
-      start: new Date(event.start),
-      end: event.end ? new Date(event.end) : null,
-      location: event.location,
-      source: 'internal',
-    },
-  });
+  try {
+    await prisma.internalEvent.create({
+      data: {
+        id: event.id,
+        title: event.title,
+        start: new Date(event.start),
+        end: event.end ? new Date(event.end) : null,
+        location: event.location,
+        source: 'internal',
+      },
+    });
+  } catch (error) {
+    if (getPrismaErrorCode(error) === 'P2021') {
+      throw new Error('Database schema is not up to date. Run Prisma schema sync to create internal_events table.');
+    }
+
+    throw error;
+  }
 }
 
 export async function updateInternalEvent(id: string, event: Omit<EventItem, 'id' | 'source'>): Promise<void> {
@@ -149,15 +165,23 @@ export async function updateInternalEvent(id: string, event: Omit<EventItem, 'id
     throw new Error('DATABASE_URL is not configured.');
   }
 
-  await prisma.internalEvent.update({
-    where: { id },
-    data: {
-      title: event.title,
-      start: new Date(event.start),
-      end: event.end ? new Date(event.end) : null,
-      location: event.location,
-    },
-  });
+  try {
+    await prisma.internalEvent.update({
+      where: { id },
+      data: {
+        title: event.title,
+        start: new Date(event.start),
+        end: event.end ? new Date(event.end) : null,
+        location: event.location,
+      },
+    });
+  } catch (error) {
+    if (getPrismaErrorCode(error) === 'P2021') {
+      throw new Error('Database schema is not up to date. Run Prisma schema sync to create internal_events table.');
+    }
+
+    throw error;
+  }
 }
 
 export async function deleteInternalEvent(id: string): Promise<void> {
@@ -165,7 +189,15 @@ export async function deleteInternalEvent(id: string): Promise<void> {
     throw new Error('DATABASE_URL is not configured.');
   }
 
-  await prisma.internalEvent.delete({ where: { id } });
+  try {
+    await prisma.internalEvent.delete({ where: { id } });
+  } catch (error) {
+    if (getPrismaErrorCode(error) === 'P2021') {
+      throw new Error('Database schema is not up to date. Run Prisma schema sync to create internal_events table.');
+    }
+
+    throw error;
+  }
 }
 
 export async function getInternalMedia(): Promise<MediaItem[]> {
