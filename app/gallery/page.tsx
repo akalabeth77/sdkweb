@@ -1,4 +1,5 @@
 import { fetchPortalData } from '@/lib/social';
+import Image from 'next/image';
 
 export const revalidate = 900;
 
@@ -11,7 +12,14 @@ export default async function GalleryPage() {
       <div className="grid grid-2">
         {media.map((item) => (
           <figure key={item.id}>
-            <img src={item.imageUrl} alt={item.caption ?? 'Swing photo'} />
+            <Image
+              src={item.imageUrl}
+              alt={item.caption ?? 'Swing photo'}
+              width={1200}
+              height={800}
+              sizes="(max-width: 768px) 100vw, 50vw"
+              style={{ width: '100%', height: 'auto' }}
+            />
             <figcaption className="small">{item.caption} ({item.source})</figcaption>
           </figure>
         ))}

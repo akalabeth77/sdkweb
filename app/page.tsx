@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { fetchPortalData } from '@/lib/social';
 import { getArticles } from '@/lib/store';
 
@@ -45,7 +46,14 @@ export default async function HomePage() {
         <div className="grid grid-2">
           {media.slice(0, 2).map((item) => (
             <figure key={item.id}>
-              <img src={item.imageUrl} alt={item.caption ?? 'Swing photo'} />
+              <Image
+                src={item.imageUrl}
+                alt={item.caption ?? 'Swing photo'}
+                width={1200}
+                height={800}
+                sizes="(max-width: 768px) 100vw, 50vw"
+                style={{ width: '100%', height: 'auto' }}
+              />
               <figcaption className="small">{item.caption}</figcaption>
             </figure>
           ))}

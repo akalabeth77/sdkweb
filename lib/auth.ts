@@ -14,7 +14,6 @@ const demoUsers = [
 
 export const authOptions: AuthOptions = {
   secret: authSecret,
-  trustHost: true,
   session: { strategy: 'jwt' },
   providers: [
     CredentialsProvider({
