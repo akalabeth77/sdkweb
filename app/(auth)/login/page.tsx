@@ -21,6 +21,11 @@ export default function LoginPage() {
     });
 
     if (result?.error) {
+      if (result.error === 'Configuration') {
+        setError('Chyba konfigurácie servera (NEXTAUTH_SECRET/NEXTAUTH_URL). Kontaktujte administrátora.');
+        return;
+      }
+
       setError('Nesprávne prihlasovacie údaje.');
       return;
     }

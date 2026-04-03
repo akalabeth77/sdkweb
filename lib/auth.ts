@@ -2,6 +2,10 @@ import { AuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import GoogleProvider from 'next-auth/providers/google';
 
+const authSecret =
+  process.env.NEXTAUTH_SECRET ??
+  (process.env.NODE_ENV === 'development' ? 'local-dev-only-secret' : undefined);
+
 const demoUsers = [
   { id: '1', email: 'admin@swing.local', password: 'admin123', name: 'Admin', role: 'admin' },
   { id: '2', email: 'editor@swing.local', password: 'editor123', name: 'Editor', role: 'editor' },
@@ -9,6 +13,8 @@ const demoUsers = [
 ] as const;
 
 export const authOptions: AuthOptions = {
+  secret: authSecret,
+  trustHost: true,
   session: { strategy: 'jwt' },
   providers: [
     CredentialsProvider({

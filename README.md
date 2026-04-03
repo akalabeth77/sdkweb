@@ -77,6 +77,13 @@ Vercel deteguje Next.js projekt automaticky.
 Pred buildom aj runtime nastav vo Vercel Project Settings -> Environment Variables hodnotu `DATABASE_URL` pre Production aj Preview.
 Po nastavení `DATABASE_URL` aplikuj schému aj na cieľovej databáze (`npx prisma db push` alebo produkčne `npx prisma migrate deploy`), inak Prisma vráti chybu `P2021` (chýbajúca tabuľka).
 
+## Vercel auth konfigurácia
+Pre funkčné prihlasovanie nastav vo Vercel Environment Variables:
+- `NEXTAUTH_SECRET` (dlhý náhodný secret, minimálne 32 znakov)
+- `NEXTAUTH_URL` (produkčná URL, napr. `https://your-app.vercel.app`)
+
+Ak `NEXTAUTH_SECRET` chýba, NextAuth v produkcii vráti chybu `Configuration` a prihlasovanie zlyhá.
+
 ## Endpointy
 - `GET /api/social/refresh` – načíta externé eventy/fotky + fallback dáta
 - `POST /api/articles` – uloženie článku (title/content/status)
