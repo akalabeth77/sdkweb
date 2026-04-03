@@ -3,6 +3,8 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { MediaItem } from '@/types';
 import Image from 'next/image';
+import { useLanguage } from '@/components/language-context';
+import { getSourceLabel } from '@/lib/i18n';
 
 type MediaForm = {
   imageUrl: string;
@@ -12,6 +14,7 @@ type MediaForm = {
 export default function AdminGalleryPage() {
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [message, setMessage] = useState('');
+  const { locale, t } = useLanguage();
 
   async function loadMedia() {
     const response = await fetch('/api/admin/media', { cache: 'no-store' });
@@ -38,13 +41,13 @@ export default function AdminGalleryPage() {
     });
 
     if (response.ok) {
-      setMessage('Položka galérie bola vytvorená.');
+      setMessage(t.admin.galleryCreated);
       event.currentTarget.reset();
       await loadMedia();
       return;
     }
 
-    setMessage('Nepodarilo sa vytvoriť položku galérie.');
+    setMessage(t.admin.galleryCreateError);
   }
 
   async function updateMedia(id: string, data: MediaForm) {
@@ -55,16 +58,16 @@ export default function AdminGalleryPage() {
     });
 
     if (response.ok) {
-      setMessage('Položka galérie bola upravená.');
+      setMessage(t.admin.galleryUpdated);
       await loadMedia();
       return;
     }
 
-    setMessage('Nepodarilo sa upraviť položku galérie.');
+    setMessage(t.admin.galleryUpdateError);
   }
 
   async function deleteMedia(id: string) {
-    if (!window.confirm('Naozaj chcete vymazať túto položku galérie?')) {
+    if (!window.confirm(t.admin.confirmDeleteGallery)) {
       return;
     }
 
@@ -73,26 +76,26 @@ export default function AdminGalleryPage() {
     });
 
     if (response.ok) {
-      setMessage('Položka galérie bola vymazaná.');
+      setMessage(t.admin.galleryDeleted);
       await loadMedia();
       return;
     }
 
-    setMessage('Nepodarilo sa vymazať položku galérie.');
+    setMessage(t.admin.galleryDeleteError);
   }
 
   return (
     <section className="card">
-      <h1>Editor galérie</h1>
+      <h1>{t.admin.galleryTitle}</h1>
       <form onSubmit={createMedia}>
-        <label>URL obrázka<input name="imageUrl" type="url" required /></label>
-        <label>Popis<input name="caption" /></label>
-        <button type="submit">Pridať obrázok</button>
+        <label>{t.admin.imageUrl}<input name="imageUrl" type="url" required /></label>
+        <label>{t.admin.caption}<input name="caption" /></label>
+        <button type="submit">{t.admin.createGalleryItem}</button>
       </form>
 
       {message ? <p className="small">{message}</p> : null}
 
-      <h2 style={{ marginTop: '1.5rem' }}>Existujúce položky galérie</h2>
+      <h2 style={{ marginTop: '1.5rem' }}>{t.admin.existingGalleryItems}</h2>
       <div className="grid" style={{ gap: '1rem' }}>
         {media.map((item) => (
           <EditableMediaCard
@@ -118,6 +121,7 @@ function EditableMediaCard({
 }) {
   const [imageUrl, setImageUrl] = useState(item.imageUrl);
   const [caption, setCaption] = useState(item.caption ?? '');
+  const { locale, t } = useLanguage();
 
   return (
     <form
@@ -132,20 +136,21 @@ function EditableMediaCard({
     >
       <Image
         src={imageUrl}
-        alt={caption || 'Gallery image'}
+        alt={caption || t.gallery.imageAlt}
         width={1200}
         height={800}
         sizes="(max-width: 768px) 100vw, 50vw"
         style={{ width: '100%', height: 'auto' }}
       />
-      <label>URL obrázka
+      <div className="small">{getSourceLabel(locale, item.source)}</div>
+      <label>{t.admin.imageUrl}
         <input type="url" value={imageUrl} onChange={(event) => setImageUrl(event.target.value)} required />
       </label>
-      <label>Popis
+      <label>{t.admin.caption}
         <input value={caption} onChange={(event) => setCaption(event.target.value)} />
       </label>
-      <button type="submit">Uložiť zmeny</button>
-      <button type="button" onClick={() => void onDelete(item.id)}>Vymazať</button>
+      <button type="submit">{t.common.save}</button>
+      <button type="button" onClick={() => void onDelete(item.id)}>{t.common.delete}</button>
     </form>
   );
 }

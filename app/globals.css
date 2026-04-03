@@ -4,6 +4,10 @@ body { margin: 0; background: #faf9f8; color: #161616; }
 .container { max-width: 980px; margin: 0 auto; padding: 1.25rem; }
 .nav { display: flex; gap: .8rem; padding: 1rem 1.25rem; border-bottom: 1px solid #e7e7e7; background: white; align-items:center; flex-wrap:wrap; }
 .nav a { text-decoration: none; color: #1d4ed8; font-weight: 600; }
+.nav button { width: auto; margin-top: 0; padding: .55rem .9rem; }
+.lang-switcher { display:flex; align-items:center; gap:.4rem; margin-left:auto; }
+.lang-btn { width:auto; margin-top:0; padding:.4rem .7rem; background:#e5e7eb; color:#111827; }
+.lang-btn.active { background:#1d4ed8; color:white; }
 .grid { display:grid; gap: 1rem; }
 .grid-2 { grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); }
 .card { background:white; border:1px solid #e6e6e6; border-radius: 12px; padding:1rem; }

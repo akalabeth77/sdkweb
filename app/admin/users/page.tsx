@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useLanguage } from '@/components/language-context';
+import { toDateLocale } from '@/lib/i18n';
 
 type PendingUser = {
   id: string;
@@ -12,18 +14,19 @@ type PendingUser = {
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<PendingUser[]>([]);
   const [message, setMessage] = useState('');
+  const { locale, t } = useLanguage();
 
   async function loadUsers() {
     const response = await fetch('/api/admin/users', { cache: 'no-store' });
 
     if (response.status === 403) {
-      setMessage('Túto sekciu môže používať iba admin.');
+      setMessage(t.admin.adminOnly);
       setUsers([]);
       return;
     }
 
     if (!response.ok) {
-      setMessage('Nepodarilo sa načítať používateľov.');
+      setMessage(t.admin.loadUsersError);
       return;
     }
 
@@ -44,32 +47,32 @@ export default function AdminUsersPage() {
     });
 
     if (response.ok) {
-      setMessage(action === 'approve' ? 'Používateľ bol schválený.' : 'Používateľ bol zamietnutý.');
+      setMessage(action === 'approve' ? t.admin.userApproved : t.admin.userRejected);
       await loadUsers();
       return;
     }
 
-    const payload = (await response.json().catch(() => ({ error: 'Operácia zlyhala.' }))) as { error?: string };
-    setMessage(payload.error ?? 'Operácia zlyhala.');
+    const payload = (await response.json().catch(() => ({ error: t.admin.operationFailed }))) as { error?: string };
+    setMessage(payload.error ?? t.admin.operationFailed);
   }
 
   return (
     <section className="card">
-      <h1>Schvaľovanie používateľov</h1>
+      <h1>{t.admin.userApprovalTitle}</h1>
       {message ? <p className="small">{message}</p> : null}
 
       {users.length === 0 ? (
-        <p className="small">Žiadne čakajúce registrácie.</p>
+        <p className="small">{t.common.noPendingRegistrations}</p>
       ) : (
         <div className="grid" style={{ gap: '1rem' }}>
           {users.map((user) => (
             <article key={user.id} className="card">
               <strong>{user.name}</strong>
               <div className="small">{user.email}</div>
-              <div className="small">Registrovaný: {new Date(user.createdAt).toLocaleString('sk-SK')}</div>
+              <div className="small">{t.common.registeredAt}: {new Date(user.createdAt).toLocaleString(toDateLocale(locale))}</div>
               <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
-                <button type="button" onClick={() => void updateUser(user.id, 'approve')}>Schváliť</button>
-                <button type="button" onClick={() => void updateUser(user.id, 'reject')}>Zamietnuť</button>
+                <button type="button" onClick={() => void updateUser(user.id, 'approve')}>{t.common.approve}</button>
+                <button type="button" onClick={() => void updateUser(user.id, 'reject')}>{t.common.reject}</button>
               </div>
             </article>
           ))}

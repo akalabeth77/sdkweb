@@ -4,10 +4,12 @@ import { FormEvent, useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useLanguage } from '@/components/language-context';
 
 export default function LoginPage() {
   const router = useRouter();
   const [error, setError] = useState('');
+  const { t } = useLanguage();
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -23,32 +25,32 @@ export default function LoginPage() {
 
     if (result?.error) {
       if (result.error === 'Configuration') {
-        setError('Chyba konfigurácie servera (NEXTAUTH_SECRET/NEXTAUTH_URL). Kontaktujte administrátora.');
+        setError(t.auth.configError);
         return;
       }
 
       if (result.error === 'AccountNotApproved') {
-        setError('Účet ešte nebol schválený adminom.');
+        setError(t.auth.notApproved);
         return;
       }
 
-      setError('Nesprávne prihlasovacie údaje.');
+      setError(t.auth.invalidCredentials);
       return;
     }
 
-    router.push('/admin/articles/new');
+    router.push('/admin');
   }
 
   return (
     <section className="card" style={{ maxWidth: 420 }}>
-      <h1>Prihlásenie</h1>
+      <h1>{t.auth.loginTitle}</h1>
       <form onSubmit={onSubmit}>
-        <label>Email<input name="email" type="email" required defaultValue="admin@swing.local" /></label>
-        <label>Heslo<input name="password" type="password" required defaultValue="admin123" /></label>
-        <button type="submit">Prihlásiť sa</button>
+        <label>{t.auth.email}<input name="email" type="email" required defaultValue="admin@swing.local" /></label>
+        <label>{t.auth.password}<input name="password" type="password" required defaultValue="admin123" /></label>
+        <button type="submit">{t.auth.loginButton}</button>
       </form>
-      <p className="small">Nemáte účet? <Link href="/register">Registrovať sa</Link></p>
-      <p className="small">Demo účty: admin/editor/member @swing.local (heslá: admin123/editor123/member123).</p>
+      <p className="small">{t.auth.noAccount} <Link href="/register">{t.auth.registerLink}</Link></p>
+      <p className="small">{t.auth.demoAccounts}</p>
       {error ? <p style={{ color: '#b91c1c' }}>{error}</p> : null}
     </section>
   );

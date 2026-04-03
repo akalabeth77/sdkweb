@@ -2,9 +2,11 @@
 
 import Link from 'next/link';
 import { FormEvent, useState } from 'react';
+import { useLanguage } from '@/components/language-context';
 
 export default function RegisterPage() {
   const [message, setMessage] = useState('');
+  const { t } = useLanguage();
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -21,26 +23,36 @@ export default function RegisterPage() {
     });
 
     if (response.ok) {
-      setMessage('Registrácia bola prijatá. Účet čaká na schválenie adminom.');
+      setMessage(t.auth.registerSuccess);
       event.currentTarget.reset();
       return;
     }
 
-    const payload = (await response.json().catch(() => ({ error: 'Registrácia zlyhala.' }))) as { error?: string };
-    setMessage(payload.error ?? 'Registrácia zlyhala.');
+    if (response.status === 409) {
+      setMessage(t.auth.registerExists);
+      return;
+    }
+
+    if (response.status === 503) {
+      setMessage(t.auth.registerUnavailable);
+      return;
+    }
+
+    const payload = (await response.json().catch(() => ({ error: t.auth.registerFailed }))) as { error?: string };
+    setMessage(payload.error ?? t.auth.registerFailed);
   }
 
   return (
     <section className="card" style={{ maxWidth: 480 }}>
-      <h1>Registrácia</h1>
+      <h1>{t.auth.registerTitle}</h1>
       <form onSubmit={onSubmit}>
-        <label>Meno<input name="name" required minLength={2} /></label>
-        <label>Email<input name="email" type="email" required /></label>
-        <label>Heslo<input name="password" type="password" required minLength={8} /></label>
-        <button type="submit">Vytvoriť účet</button>
+        <label>{t.auth.name}<input name="name" required minLength={2} /></label>
+        <label>{t.auth.email}<input name="email" type="email" required /></label>
+        <label>{t.auth.password}<input name="password" type="password" required minLength={8} /></label>
+        <button type="submit">{t.auth.registerButton}</button>
       </form>
       {message ? <p className="small">{message}</p> : null}
-      <p className="small">Už máte účet? <Link href="/login">Prihlásiť sa</Link></p>
+      <p className="small">{t.auth.haveAccount} <Link href="/login">{t.auth.loginLink}</Link></p>
     </section>
   );
 }

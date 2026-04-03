@@ -2,6 +2,8 @@
 
 import { FormEvent, useEffect, useState } from 'react';
 import { Article } from '@/types';
+import { useLanguage } from '@/components/language-context';
+import { getStatusLabel, toDateLocale } from '@/lib/i18n';
 
 type ArticleForm = {
   title: string;
@@ -12,6 +14,7 @@ type ArticleForm = {
 export default function AdminArticlesPage() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [message, setMessage] = useState('');
+  const { locale, t } = useLanguage();
 
   async function loadArticles() {
     const response = await fetch('/api/admin/articles', { cache: 'no-store' });
@@ -39,13 +42,13 @@ export default function AdminArticlesPage() {
     });
 
     if (response.ok) {
-      setMessage('Článok bol vytvorený.');
+      setMessage(t.admin.articleCreated);
       event.currentTarget.reset();
       await loadArticles();
       return;
     }
 
-    setMessage('Nepodarilo sa vytvoriť článok.');
+    setMessage(t.admin.articleCreateError);
   }
 
   async function updateExisting(id: string, data: ArticleForm) {
@@ -56,16 +59,16 @@ export default function AdminArticlesPage() {
     });
 
     if (response.ok) {
-      setMessage('Článok bol upravený.');
+      setMessage(t.admin.articleUpdated);
       await loadArticles();
       return;
     }
 
-    setMessage('Nepodarilo sa upraviť článok.');
+    setMessage(t.admin.articleUpdateError);
   }
 
   async function deleteExisting(id: string) {
-    if (!window.confirm('Naozaj chcete vymazať tento článok?')) {
+    if (!window.confirm(t.admin.confirmDeleteArticle)) {
       return;
     }
 
@@ -74,32 +77,32 @@ export default function AdminArticlesPage() {
     });
 
     if (response.ok) {
-      setMessage('Článok bol vymazaný.');
+      setMessage(t.admin.articleDeleted);
       await loadArticles();
       return;
     }
 
-    setMessage('Nepodarilo sa vymazať článok.');
+    setMessage(t.admin.articleDeleteError);
   }
 
   return (
     <section className="card">
-      <h1>Editor článkov</h1>
+      <h1>{t.admin.articlesTitle}</h1>
       <form onSubmit={createArticle}>
-        <label>Názov článku<input name="title" required /></label>
-        <label>Obsah<textarea name="content" rows={8} required /></label>
-        <label>Status
+        <label>{t.admin.articleTitle}<input name="title" required /></label>
+        <label>{t.admin.articleContent}<textarea name="content" rows={8} required /></label>
+        <label>{t.admin.status}
           <select name="status" defaultValue="draft">
-            <option value="draft">Draft</option>
-            <option value="published">Published</option>
+            <option value="draft">{t.common.draft}</option>
+            <option value="published">{t.common.published}</option>
           </select>
         </label>
-        <button type="submit">Pridať článok</button>
+        <button type="submit">{t.admin.createArticle}</button>
       </form>
 
       {message ? <p className="small">{message}</p> : null}
 
-      <h2 style={{ marginTop: '1.5rem' }}>Existujúce články</h2>
+      <h2 style={{ marginTop: '1.5rem' }}>{t.admin.existingArticles}</h2>
       <div className="grid" style={{ gap: '1rem' }}>
         {articles.map((article) => (
           <EditableArticleCard
@@ -126,6 +129,7 @@ function EditableArticleCard({
   const [title, setTitle] = useState(article.title);
   const [content, setContent] = useState(article.content);
   const [status, setStatus] = useState<'draft' | 'published'>(article.status);
+  const { locale, t } = useLanguage();
 
   return (
     <form
@@ -135,21 +139,21 @@ function EditableArticleCard({
         await onSave(article.id, { title, content, status });
       }}
     >
-      <div className="small">{new Date(article.createdAt).toLocaleString('sk-SK')}</div>
-      <label>Názov
+      <div className="small">{new Date(article.createdAt).toLocaleString(toDateLocale(locale))} · {getStatusLabel(locale, article.status)}</div>
+      <label>{t.admin.articleTitle}
         <input value={title} onChange={(event) => setTitle(event.target.value)} required />
       </label>
-      <label>Obsah
+      <label>{t.admin.articleContent}
         <textarea value={content} onChange={(event) => setContent(event.target.value)} rows={6} required />
       </label>
-      <label>Status
+      <label>{t.admin.status}
         <select value={status} onChange={(event) => setStatus(event.target.value as 'draft' | 'published')}>
-          <option value="draft">Draft</option>
-          <option value="published">Published</option>
+          <option value="draft">{t.common.draft}</option>
+          <option value="published">{t.common.published}</option>
         </select>
       </label>
-      <button type="submit">Uložiť zmeny</button>
-      <button type="button" onClick={() => void onDelete(article.id)}>Vymazať</button>
+      <button type="submit">{t.common.save}</button>
+      <button type="button" onClick={() => void onDelete(article.id)}>{t.common.delete}</button>
     </form>
   );
 }

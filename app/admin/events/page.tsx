@@ -2,6 +2,8 @@
 
 import { FormEvent, useEffect, useState } from 'react';
 import { EventItem } from '@/types';
+import { useLanguage } from '@/components/language-context';
+import { getSourceLabel, toDateLocale } from '@/lib/i18n';
 
 type EventForm = {
   title: string;
@@ -24,6 +26,7 @@ function toDatetimeLocal(iso: string): string {
 export default function AdminEventsPage() {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [message, setMessage] = useState('');
+  const { t } = useLanguage();
 
   async function loadEvents() {
     const response = await fetch('/api/admin/events', { cache: 'no-store' });
@@ -55,13 +58,13 @@ export default function AdminEventsPage() {
     });
 
     if (response.ok) {
-      setMessage('Event bol vytvorený.');
+      setMessage(t.admin.eventCreated);
       event.currentTarget.reset();
       await loadEvents();
       return;
     }
 
-    setMessage('Nepodarilo sa vytvoriť event.');
+    setMessage(t.admin.eventCreateError);
   }
 
   async function updateEvent(id: string, data: EventForm) {
@@ -72,16 +75,16 @@ export default function AdminEventsPage() {
     });
 
     if (response.ok) {
-      setMessage('Event bol upravený.');
+      setMessage(t.admin.eventUpdated);
       await loadEvents();
       return;
     }
 
-    setMessage('Nepodarilo sa upraviť event.');
+    setMessage(t.admin.eventUpdateError);
   }
 
   async function deleteEvent(id: string) {
-    if (!window.confirm('Naozaj chcete vymazať tento event?')) {
+    if (!window.confirm(t.admin.confirmDeleteEvent)) {
       return;
     }
 
@@ -90,28 +93,28 @@ export default function AdminEventsPage() {
     });
 
     if (response.ok) {
-      setMessage('Event bol vymazaný.');
+      setMessage(t.admin.eventDeleted);
       await loadEvents();
       return;
     }
 
-    setMessage('Nepodarilo sa vymazať event.');
+    setMessage(t.admin.eventDeleteError);
   }
 
   return (
     <section className="card">
-      <h1>Editor eventov</h1>
+      <h1>{t.admin.eventsTitle}</h1>
       <form onSubmit={createEvent}>
-        <label>Názov eventu<input name="title" required /></label>
-        <label>Začiatok<input name="start" type="datetime-local" required /></label>
-        <label>Koniec<input name="end" type="datetime-local" /></label>
-        <label>Lokalita<input name="location" /></label>
-        <button type="submit">Pridať event</button>
+        <label>{t.admin.eventTitle}<input name="title" required /></label>
+        <label>{t.admin.eventStart}<input name="start" type="datetime-local" required /></label>
+        <label>{t.admin.eventEnd}<input name="end" type="datetime-local" /></label>
+        <label>{t.admin.eventLocation}<input name="location" /></label>
+        <button type="submit">{t.admin.createEvent}</button>
       </form>
 
       {message ? <p className="small">{message}</p> : null}
 
-      <h2 style={{ marginTop: '1.5rem' }}>Existujúce eventy</h2>
+      <h2 style={{ marginTop: '1.5rem' }}>{t.admin.existingEvents}</h2>
       <div className="grid" style={{ gap: '1rem' }}>
         {events.map((eventItem) => (
           <EditableEventCard
@@ -139,6 +142,7 @@ function EditableEventCard({
   const [start, setStart] = useState(toDatetimeLocal(item.start));
   const [end, setEnd] = useState(item.end ? toDatetimeLocal(item.end) : '');
   const [location, setLocation] = useState(item.location ?? '');
+  const { locale, t } = useLanguage();
 
   return (
     <form
@@ -153,21 +157,21 @@ function EditableEventCard({
         });
       }}
     >
-      <div className="small">{item.source}</div>
-      <label>Názov
+      <div className="small">{getSourceLabel(locale, item.source)} · {new Date(item.start).toLocaleString(toDateLocale(locale))}</div>
+      <label>{t.admin.eventTitle}
         <input value={title} onChange={(event) => setTitle(event.target.value)} required />
       </label>
-      <label>Začiatok
+      <label>{t.admin.eventStart}
         <input type="datetime-local" value={start} onChange={(event) => setStart(event.target.value)} required />
       </label>
-      <label>Koniec
+      <label>{t.admin.eventEnd}
         <input type="datetime-local" value={end} onChange={(event) => setEnd(event.target.value)} />
       </label>
-      <label>Lokalita
+      <label>{t.admin.eventLocation}
         <input value={location} onChange={(event) => setLocation(event.target.value)} />
       </label>
-      <button type="submit">Uložiť zmeny</button>
-      <button type="button" onClick={() => void onDelete(item.id)}>Vymazať</button>
+      <button type="submit">{t.common.save}</button>
+      <button type="button" onClick={() => void onDelete(item.id)}>{t.common.delete}</button>
     </form>
   );
 }
