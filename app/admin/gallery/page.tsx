@@ -63,6 +63,20 @@ export default function AdminGalleryPage() {
     setMessage('Nepodarilo sa upraviť položku galérie.');
   }
 
+  async function deleteMedia(id: string) {
+    const response = await fetch(`/api/admin/media/${id}`, {
+      method: 'DELETE'
+    });
+
+    if (response.ok) {
+      setMessage('Položka galérie bola vymazaná.');
+      await loadMedia();
+      return;
+    }
+
+    setMessage('Nepodarilo sa vymazať položku galérie.');
+  }
+
   return (
     <section className="card">
       <h1>Editor galérie</h1>
@@ -77,7 +91,12 @@ export default function AdminGalleryPage() {
       <h2 style={{ marginTop: '1.5rem' }}>Existujúce položky galérie</h2>
       <div className="grid" style={{ gap: '1rem' }}>
         {media.map((item) => (
-          <EditableMediaCard key={item.id} item={item} onSave={updateMedia} />
+          <EditableMediaCard
+            key={item.id}
+            item={item}
+            onSave={updateMedia}
+            onDelete={deleteMedia}
+          />
         ))}
       </div>
     </section>
@@ -87,9 +106,11 @@ export default function AdminGalleryPage() {
 function EditableMediaCard({
   item,
   onSave,
+  onDelete,
 }: {
   item: MediaItem;
   onSave: (id: string, data: MediaForm) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
 }) {
   const [imageUrl, setImageUrl] = useState(item.imageUrl);
   const [caption, setCaption] = useState(item.caption ?? '');
@@ -120,6 +141,7 @@ function EditableMediaCard({
         <input value={caption} onChange={(event) => setCaption(event.target.value)} />
       </label>
       <button type="submit">Uložiť zmeny</button>
+      <button type="button" onClick={() => void onDelete(item.id)}>Vymazať</button>
     </form>
   );
 }

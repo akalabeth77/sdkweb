@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { updateArticle } from '@/lib/store';
+import { deleteArticle, updateArticle } from '@/lib/store';
 
 const schema = z.object({
   title: z.string().min(3),
@@ -24,6 +24,19 @@ export async function PUT(
     return NextResponse.json({ ok: true });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unable to update article';
+    return NextResponse.json({ error: message }, { status: 503 });
+  }
+}
+
+export async function DELETE(
+  _request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    await deleteArticle(params.id);
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unable to delete article';
     return NextResponse.json({ error: message }, { status: 503 });
   }
 }

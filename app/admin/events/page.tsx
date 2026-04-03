@@ -80,6 +80,20 @@ export default function AdminEventsPage() {
     setMessage('Nepodarilo sa upraviť event.');
   }
 
+  async function deleteEvent(id: string) {
+    const response = await fetch(`/api/admin/events/${id}`, {
+      method: 'DELETE'
+    });
+
+    if (response.ok) {
+      setMessage('Event bol vymazaný.');
+      await loadEvents();
+      return;
+    }
+
+    setMessage('Nepodarilo sa vymazať event.');
+  }
+
   return (
     <section className="card">
       <h1>Editor eventov</h1>
@@ -96,7 +110,12 @@ export default function AdminEventsPage() {
       <h2 style={{ marginTop: '1.5rem' }}>Existujúce eventy</h2>
       <div className="grid" style={{ gap: '1rem' }}>
         {events.map((eventItem) => (
-          <EditableEventCard key={eventItem.id} item={eventItem} onSave={updateEvent} />
+          <EditableEventCard
+            key={eventItem.id}
+            item={eventItem}
+            onSave={updateEvent}
+            onDelete={deleteEvent}
+          />
         ))}
       </div>
     </section>
@@ -106,9 +125,11 @@ export default function AdminEventsPage() {
 function EditableEventCard({
   item,
   onSave,
+  onDelete,
 }: {
   item: EventItem;
   onSave: (id: string, data: EventForm) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
 }) {
   const [title, setTitle] = useState(item.title);
   const [start, setStart] = useState(toDatetimeLocal(item.start));
@@ -142,6 +163,7 @@ function EditableEventCard({
         <input value={location} onChange={(event) => setLocation(event.target.value)} />
       </label>
       <button type="submit">Uložiť zmeny</button>
+      <button type="button" onClick={() => void onDelete(item.id)}>Vymazať</button>
     </form>
   );
 }

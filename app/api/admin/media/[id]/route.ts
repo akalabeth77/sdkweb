@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { updateInternalMedia } from '@/lib/store';
+import { deleteInternalMedia, updateInternalMedia } from '@/lib/store';
 
 const schema = z.object({
   imageUrl: z.string().url(),
@@ -27,6 +27,19 @@ export async function PUT(
     return NextResponse.json({ ok: true });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unable to update media';
+    return NextResponse.json({ error: message }, { status: 503 });
+  }
+}
+
+export async function DELETE(
+  _request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    await deleteInternalMedia(params.id);
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unable to delete media';
     return NextResponse.json({ error: message }, { status: 503 });
   }
 }

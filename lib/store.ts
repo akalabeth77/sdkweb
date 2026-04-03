@@ -95,6 +95,14 @@ export async function updateArticle(id: string, article: Pick<Article, 'title' |
   });
 }
 
+export async function deleteArticle(id: string): Promise<void> {
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL is not configured.');
+  }
+
+  await prisma.article.delete({ where: { id } });
+}
+
 export async function getInternalEvents(): Promise<EventItem[]> {
   if (!process.env.DATABASE_URL) {
     return [];
@@ -152,6 +160,14 @@ export async function updateInternalEvent(id: string, event: Omit<EventItem, 'id
   });
 }
 
+export async function deleteInternalEvent(id: string): Promise<void> {
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL is not configured.');
+  }
+
+  await prisma.internalEvent.delete({ where: { id } });
+}
+
 export async function getInternalMedia(): Promise<MediaItem[]> {
   if (!process.env.DATABASE_URL) {
     return [];
@@ -201,4 +217,12 @@ export async function updateInternalMedia(id: string, media: Omit<MediaItem, 'id
       caption: media.caption,
     },
   });
+}
+
+export async function deleteInternalMedia(id: string): Promise<void> {
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL is not configured.');
+  }
+
+  await prisma.internalMedia.delete({ where: { id } });
 }

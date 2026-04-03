@@ -64,6 +64,20 @@ export default function AdminArticlesPage() {
     setMessage('Nepodarilo sa upraviť článok.');
   }
 
+  async function deleteExisting(id: string) {
+    const response = await fetch(`/api/admin/articles/${id}`, {
+      method: 'DELETE'
+    });
+
+    if (response.ok) {
+      setMessage('Článok bol vymazaný.');
+      await loadArticles();
+      return;
+    }
+
+    setMessage('Nepodarilo sa vymazať článok.');
+  }
+
   return (
     <section className="card">
       <h1>Editor článkov</h1>
@@ -84,7 +98,12 @@ export default function AdminArticlesPage() {
       <h2 style={{ marginTop: '1.5rem' }}>Existujúce články</h2>
       <div className="grid" style={{ gap: '1rem' }}>
         {articles.map((article) => (
-          <EditableArticleCard key={article.id} article={article} onSave={updateExisting} />
+          <EditableArticleCard
+            key={article.id}
+            article={article}
+            onSave={updateExisting}
+            onDelete={deleteExisting}
+          />
         ))}
       </div>
     </section>
@@ -94,9 +113,11 @@ export default function AdminArticlesPage() {
 function EditableArticleCard({
   article,
   onSave,
+  onDelete,
 }: {
   article: Article;
   onSave: (id: string, data: ArticleForm) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
 }) {
   const [title, setTitle] = useState(article.title);
   const [content, setContent] = useState(article.content);
@@ -124,6 +145,7 @@ function EditableArticleCard({
         </select>
       </label>
       <button type="submit">Uložiť zmeny</button>
+      <button type="button" onClick={() => void onDelete(article.id)}>Vymazať</button>
     </form>
   );
 }
