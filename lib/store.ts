@@ -2,10 +2,23 @@ import { Article } from '@/types';
 import { prisma } from './db';
 import seedArticles from './seed-articles.json';
 
+type PrismaErrorLike = {
+  code?: string;
+};
+
 function getSeedArticles(): Article[] {
   return (seedArticles as Article[]).sort((a, b) =>
     b.createdAt.localeCompare(a.createdAt)
   );
+}
+
+function shouldFallbackToSeed(error: unknown): boolean {
+  if (!error || typeof error !== 'object') {
+    return false;
+  }
+
+  const prismaError = error as PrismaErrorLike;
+  return prismaError.code === 'P2021' || prismaError.code === 'P1001';
 }
 
 export async function getArticles(): Promise<Article[]> {
@@ -13,14 +26,24 @@ export async function getArticles(): Promise<Article[]> {
     return getSeedArticles();
   }
 
-  const rows: Array<{
+  let rows: Array<{
     id: string;
     title: string;
     content: string;
     author: string;
     createdAt: Date;
     status: string;
-  }> = await prisma.article.findMany({ orderBy: { createdAt: 'desc' } });
+  }>;
+
+  try {
+    rows = await prisma.article.findMany({ orderBy: { createdAt: 'desc' } });
+  } catch (error) {
+    if (shouldFallbackToSeed(error)) {
+      return getSeedArticles();
+    }
+
+    throw error;
+  }
 
   if (rows.length === 0) {
     return getSeedArticles();

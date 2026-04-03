@@ -75,6 +75,7 @@ npm run build
 
 Vercel deteguje Next.js projekt automaticky.
 Pred buildom aj runtime nastav vo Vercel Project Settings -> Environment Variables hodnotu `DATABASE_URL` pre Production aj Preview.
+Po nastavení `DATABASE_URL` aplikuj schému aj na cieľovej databáze (`npx prisma db push` alebo produkčne `npx prisma migrate deploy`), inak Prisma vráti chybu `P2021` (chýbajúca tabuľka).
 
 ## Endpointy
 - `GET /api/social/refresh` – načíta externé eventy/fotky + fallback dáta
