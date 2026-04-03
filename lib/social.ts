@@ -1,4 +1,5 @@
 import { EventItem, MediaItem } from '@/types';
+import { getInternalEvents, getInternalMedia } from './store';
 
 const fallbackEvents: EventItem[] = [
   {
@@ -80,16 +81,18 @@ export async function fetchGoogleCalendarEvents(): Promise<EventItem[]> {
 }
 
 export async function fetchPortalData() {
-  const [fbEvents, igMedia, gEvents] = await Promise.all([
+  const [fbEvents, igMedia, gEvents, internalEvents, internalMedia] = await Promise.all([
     fetchFacebookEvents(),
     fetchInstagramMedia(),
-    fetchGoogleCalendarEvents()
+    fetchGoogleCalendarEvents(),
+    getInternalEvents(),
+    getInternalMedia()
   ]);
 
   return {
-    events: [...fbEvents, ...gEvents, ...fallbackEvents]
+    events: [...fbEvents, ...gEvents, ...internalEvents, ...fallbackEvents]
       .sort((a, b) => a.start.localeCompare(b.start))
       .slice(0, 20),
-    media: [...igMedia, ...fallbackMedia].slice(0, 24)
+    media: [...internalMedia, ...igMedia, ...fallbackMedia].slice(0, 24)
   };
 }

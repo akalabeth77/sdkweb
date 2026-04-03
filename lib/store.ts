@@ -1,4 +1,4 @@
-import { Article } from '@/types';
+import { Article, EventItem, MediaItem } from '@/types';
 import { prisma } from './db';
 import seedArticles from './seed-articles.json';
 
@@ -19,6 +19,10 @@ function shouldFallbackToSeed(error: unknown): boolean {
 
   const prismaError = error as PrismaErrorLike;
   return prismaError.code === 'P2021' || prismaError.code === 'P1001';
+}
+
+function mapArticleStatus(status: string): 'draft' | 'published' {
+  return status === 'published' ? 'published' : 'draft';
 }
 
 export async function getArticles(): Promise<Article[]> {
@@ -55,7 +59,7 @@ export async function getArticles(): Promise<Article[]> {
     content: row.content,
     author: row.author,
     createdAt: row.createdAt.toISOString(),
-    status: row.status as 'draft' | 'published',
+    status: mapArticleStatus(row.status),
   }));
 }
 
@@ -72,6 +76,129 @@ export async function saveArticle(article: Article): Promise<void> {
       author: article.author,
       createdAt: new Date(article.createdAt),
       status: article.status,
+    },
+  });
+}
+
+export async function updateArticle(id: string, article: Pick<Article, 'title' | 'content' | 'status'>): Promise<void> {
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL is not configured.');
+  }
+
+  await prisma.article.update({
+    where: { id },
+    data: {
+      title: article.title,
+      content: article.content,
+      status: article.status,
+    },
+  });
+}
+
+export async function getInternalEvents(): Promise<EventItem[]> {
+  if (!process.env.DATABASE_URL) {
+    return [];
+  }
+
+  try {
+    const rows = await prisma.internalEvent.findMany({ orderBy: { start: 'asc' } });
+    return rows.map((row) => ({
+      id: row.id,
+      title: row.title,
+      start: row.start.toISOString(),
+      end: row.end?.toISOString(),
+      location: row.location ?? undefined,
+      source: 'internal',
+    }));
+  } catch (error) {
+    if (shouldFallbackToSeed(error)) {
+      return [];
+    }
+
+    throw error;
+  }
+}
+
+export async function saveInternalEvent(event: Omit<EventItem, 'source'>): Promise<void> {
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL is not configured.');
+  }
+
+  await prisma.internalEvent.create({
+    data: {
+      id: event.id,
+      title: event.title,
+      start: new Date(event.start),
+      end: event.end ? new Date(event.end) : null,
+      location: event.location,
+      source: 'internal',
+    },
+  });
+}
+
+export async function updateInternalEvent(id: string, event: Omit<EventItem, 'id' | 'source'>): Promise<void> {
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL is not configured.');
+  }
+
+  await prisma.internalEvent.update({
+    where: { id },
+    data: {
+      title: event.title,
+      start: new Date(event.start),
+      end: event.end ? new Date(event.end) : null,
+      location: event.location,
+    },
+  });
+}
+
+export async function getInternalMedia(): Promise<MediaItem[]> {
+  if (!process.env.DATABASE_URL) {
+    return [];
+  }
+
+  try {
+    const rows = await prisma.internalMedia.findMany({ orderBy: { createdAt: 'desc' } });
+    return rows.map((row) => ({
+      id: row.id,
+      imageUrl: row.imageUrl,
+      caption: row.caption ?? undefined,
+      source: 'internal',
+    }));
+  } catch (error) {
+    if (shouldFallbackToSeed(error)) {
+      return [];
+    }
+
+    throw error;
+  }
+}
+
+export async function saveInternalMedia(media: Omit<MediaItem, 'source'>): Promise<void> {
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL is not configured.');
+  }
+
+  await prisma.internalMedia.create({
+    data: {
+      id: media.id,
+      imageUrl: media.imageUrl,
+      caption: media.caption,
+      source: 'internal',
+    },
+  });
+}
+
+export async function updateInternalMedia(id: string, media: Omit<MediaItem, 'id' | 'source'>): Promise<void> {
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL is not configured.');
+  }
+
+  await prisma.internalMedia.update({
+    where: { id },
+    data: {
+      imageUrl: media.imageUrl,
+      caption: media.caption,
     },
   });
 }

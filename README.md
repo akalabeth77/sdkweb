@@ -65,7 +65,7 @@ GCAL_API_KEY=
 Ak externé API kľúče nie sú nastavené, portál stále funguje s internými fallback dátami.
 
 ## Dôležitá poznámka k úložisku
-Články sú uložené v **PostgreSQL databáze** cez Prisma ORM.
+Články, interné eventy a interná galéria sú uložené v **PostgreSQL databáze** cez Prisma ORM.
 Pre nasadenie na Vercel nastav `DATABASE_URL` ako environment variable.
 
 ## Build pre Vercel
@@ -83,6 +83,16 @@ Pre funkčné prihlasovanie nastav vo Vercel Environment Variables:
 - `NEXTAUTH_URL` (produkčná URL, napr. `https://your-app.vercel.app`)
 
 Ak `NEXTAUTH_SECRET` chýba, NextAuth v produkcii vráti chybu `Configuration` a prihlasovanie zlyhá.
+
+## Admin editory
+- `/admin/articles` - vytvorenie a editácia existujúcich článkov
+- `/admin/events` - vytvorenie a editácia interných eventov
+- `/admin/gallery` - vytvorenie a editácia interných položiek galérie
+
+Po zmene Prisma schémy nezabudni aplikovať zmeny do DB:
+```bash
+npx prisma db push
+```
 
 ## Endpointy
 - `GET /api/social/refresh` – načíta externé eventy/fotky + fallback dáta

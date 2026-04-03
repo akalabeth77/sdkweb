@@ -34,10 +34,10 @@ export async function POST(request: Request) {
       createdAt: new Date().toISOString(),
       author: 'Admin'
     });
+
+    return NextResponse.json({ ok: true });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unable to save article';
     return NextResponse.json({ error: message }, { status: 503 });
   }
-
-  return NextResponse.json({ ok: true });
 }

@@ -17,3 +17,25 @@ model Article {
 
   @@map("articles")
 }
+
+model InternalEvent {
+  id        String   @id
+  title     String
+  start     DateTime
+  end       DateTime?
+  location  String?
+  source    String   @default("internal")
+  createdAt DateTime @default(now())
+
+  @@map("internal_events")
+}
+
+model InternalMedia {
+  id        String   @id
+  imageUrl  String
+  caption   String?
+  source    String   @default("internal")
+  createdAt DateTime @default(now())
+
+  @@map("internal_media")
+}
