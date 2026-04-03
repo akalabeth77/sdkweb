@@ -81,6 +81,10 @@ export default function AdminEventsPage() {
   }
 
   async function deleteEvent(id: string) {
+    if (!window.confirm('Naozaj chcete vymazať tento event?')) {
+      return;
+    }
+
     const response = await fetch(`/api/admin/events/${id}`, {
       method: 'DELETE'
     });

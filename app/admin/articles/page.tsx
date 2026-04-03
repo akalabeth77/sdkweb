@@ -65,6 +65,10 @@ export default function AdminArticlesPage() {
   }
 
   async function deleteExisting(id: string) {
+    if (!window.confirm('Naozaj chcete vymazať tento článok?')) {
+      return;
+    }
+
     const response = await fetch(`/api/admin/articles/${id}`, {
       method: 'DELETE'
     });

@@ -64,6 +64,10 @@ export default function AdminGalleryPage() {
   }
 
   async function deleteMedia(id: string) {
+    if (!window.confirm('Naozaj chcete vymazať túto položku galérie?')) {
+      return;
+    }
+
     const response = await fetch(`/api/admin/media/${id}`, {
       method: 'DELETE'
     });

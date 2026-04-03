@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { ReactNode } from 'react';
 import { Navigation } from '@/components/navigation';
+import { Providers } from '@/components/providers';
 
 export const metadata: Metadata = {
   title: 'Swing Community Portal',
@@ -12,8 +13,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="sk">
       <body>
-        <Navigation />
-        <main className="container">{children}</main>
+        <Providers>
+          <Navigation />
+          <main className="container">{children}</main>
+        </Providers>
       </body>
     </html>
   );
