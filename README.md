@@ -40,7 +40,7 @@ npm run dev
 ## Environment variables (.env.local)
 ```bash
 NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=replace-with-long-random-secret
+NEXTAUTH_SECRET=swingdancekosiceweb
 
 # Databáza (Supabase / Neon)
 DATABASE_URL=postgresql://USER:PASSWORD@HOST:5432/DB_NAME?sslmode=require

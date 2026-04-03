@@ -4,10 +4,19 @@ import { deleteInternalEvent, updateInternalEvent } from '@/lib/store';
 
 const schema = z.object({
   title: z.string().min(3),
-  start: z.string().datetime(),
-  end: z.string().datetime().optional().or(z.literal('')),
+  start: z.string().min(1),
+  end: z.string().optional().or(z.literal('')),
   location: z.string().optional().or(z.literal(''))
 });
+
+function toIsoOrNull(value: string): string | null {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return date.toISOString();
+}
 
 export async function PUT(
   request: Request,
@@ -20,11 +29,25 @@ export async function PUT(
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
+  const startIso = toIsoOrNull(parsed.data.start);
+  if (!startIso) {
+    return NextResponse.json({ error: 'Invalid start date format.' }, { status: 400 });
+  }
+
+  let endIso: string | undefined;
+  if (parsed.data.end) {
+    const normalizedEnd = toIsoOrNull(parsed.data.end);
+    if (!normalizedEnd) {
+      return NextResponse.json({ error: 'Invalid end date format.' }, { status: 400 });
+    }
+    endIso = normalizedEnd;
+  }
+
   try {
     await updateInternalEvent(params.id, {
       title: parsed.data.title,
-      start: parsed.data.start,
-      end: parsed.data.end || undefined,
+      start: startIso,
+      end: endIso,
       location: parsed.data.location || undefined,
     });
 

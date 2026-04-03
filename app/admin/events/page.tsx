@@ -51,8 +51,8 @@ export default function AdminEventsPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         title: formData.get('title'),
-        start: start ? new Date(start).toISOString() : '',
-        end: end ? new Date(end).toISOString() : '',
+        start,
+        end,
         location: formData.get('location')
       })
     });
@@ -64,7 +64,8 @@ export default function AdminEventsPage() {
       return;
     }
 
-    setMessage(t.admin.eventCreateError);
+    const payload = (await response.json().catch(() => ({ error: t.admin.eventCreateError }))) as { error?: string };
+    setMessage(payload.error ?? t.admin.eventCreateError);
   }
 
   async function updateEvent(id: string, data: EventForm) {
@@ -80,7 +81,8 @@ export default function AdminEventsPage() {
       return;
     }
 
-    setMessage(t.admin.eventUpdateError);
+    const payload = (await response.json().catch(() => ({ error: t.admin.eventUpdateError }))) as { error?: string };
+    setMessage(payload.error ?? t.admin.eventUpdateError);
   }
 
   async function deleteEvent(id: string) {
