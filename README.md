@@ -88,6 +88,12 @@ Ak `NEXTAUTH_SECRET` chýba, NextAuth v produkcii vráti chybu `Configuration` a
 - `/admin/articles` - vytvorenie a editácia existujúcich článkov
 - `/admin/events` - vytvorenie a editácia interných eventov
 - `/admin/gallery` - vytvorenie a editácia interných položiek galérie
+- `/admin/users` - schvaľovanie registrácií používateľov (iba admin)
+
+## Registrácia používateľov
+- Verejná registrácia: `/register`
+- Nový účet má stav `pending` a prihlásenie je možné až po schválení adminom.
+- Admin schvaľuje/zamieta účty v `/admin/users`.
 
 Po zmene Prisma schémy nezabudni aplikovať zmeny do DB:
 ```bash

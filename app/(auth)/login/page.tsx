@@ -3,6 +3,7 @@
 import { FormEvent, useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -26,6 +27,11 @@ export default function LoginPage() {
         return;
       }
 
+      if (result.error === 'AccountNotApproved') {
+        setError('Účet ešte nebol schválený adminom.');
+        return;
+      }
+
       setError('Nesprávne prihlasovacie údaje.');
       return;
     }
@@ -41,6 +47,7 @@ export default function LoginPage() {
         <label>Heslo<input name="password" type="password" required defaultValue="admin123" /></label>
         <button type="submit">Prihlásiť sa</button>
       </form>
+      <p className="small">Nemáte účet? <Link href="/register">Registrovať sa</Link></p>
       <p className="small">Demo účty: admin/editor/member @swing.local (heslá: admin123/editor123/member123).</p>
       {error ? <p style={{ color: '#b91c1c' }}>{error}</p> : null}
     </section>

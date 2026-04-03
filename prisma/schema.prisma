@@ -39,3 +39,16 @@ model InternalMedia {
 
   @@map("internal_media")
 }
+
+model AppUser {
+  id           String   @id
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         String   @default("member")
+  status       String   @default("pending")
+  createdAt    DateTime @default(now())
+  approvedAt   DateTime?
+
+  @@map("app_users")
+}

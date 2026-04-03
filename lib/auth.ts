@@ -1,6 +1,8 @@
 import { AuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import GoogleProvider from 'next-auth/providers/google';
+import { findAppUserByEmail } from './users';
+import { verifyPassword } from './password';
 
 const authSecret =
   process.env.NEXTAUTH_SECRET ??
@@ -24,6 +26,24 @@ export const authOptions: AuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials.password) return null;
+
+        const appUser = await findAppUserByEmail(credentials.email);
+        if (appUser) {
+          if (appUser.status !== 'approved') {
+            throw new Error('AccountNotApproved');
+          }
+
+          const ok = verifyPassword(credentials.password, appUser.passwordHash);
+          if (!ok) return null;
+
+          return {
+            id: appUser.id,
+            email: appUser.email,
+            name: appUser.name,
+            role: appUser.role
+          };
+        }
+
         const user = demoUsers.find(
           (item) => item.email === credentials.email && item.password === credentials.password
         );
