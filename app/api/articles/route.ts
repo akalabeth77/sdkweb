@@ -16,14 +16,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  await saveArticle({
-    id: crypto.randomUUID(),
-    title: parsed.data.title,
-    content: parsed.data.content,
-    status: parsed.data.status,
-    createdAt: new Date().toISOString(),
-    author: 'Admin'
-  });
+  try {
+    await saveArticle({
+      id: crypto.randomUUID(),
+      title: parsed.data.title,
+      content: parsed.data.content,
+      status: parsed.data.status,
+      createdAt: new Date().toISOString(),
+      author: 'Admin'
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unable to save article';
+    return NextResponse.json({ error: message }, { status: 503 });
+  }
 
   return NextResponse.json({ ok: true });
 }

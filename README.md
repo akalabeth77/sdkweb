@@ -43,7 +43,7 @@ NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=replace-with-long-random-secret
 
 # Databáza (Supabase / Neon)
-DATABASE_URL=postgres://postgres.aiuklnbazltbolsotexl:n2CJrBYrOKk3CqHt@aws-0-eu-west-1.pooler.supabase.com:5432/postgres?sslmode=require
+DATABASE_URL=postgresql://USER:PASSWORD@HOST:5432/DB_NAME?sslmode=require
 
 # Voliteľné: Google OAuth login
 GOOGLE_CLIENT_ID=
@@ -74,6 +74,7 @@ npm run build
 ```
 
 Vercel deteguje Next.js projekt automaticky.
+Pred buildom aj runtime nastav vo Vercel Project Settings -> Environment Variables hodnotu `DATABASE_URL` pre Production aj Preview.
 
 ## Endpointy
 - `GET /api/social/refresh` – načíta externé eventy/fotky + fallback dáta
