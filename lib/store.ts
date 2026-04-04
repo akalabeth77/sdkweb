@@ -26,7 +26,7 @@ function shouldFallbackToSeed(error: unknown): boolean {
   }
 
   const prismaError = error as PrismaErrorLike;
-  return prismaError.code === 'P2021' || prismaError.code === 'P1001';
+  return prismaError.code === 'P2021' || prismaError.code === 'P2022' || prismaError.code === 'P1001';
 }
 
 function mapArticleStatus(status: string): 'draft' | 'published' {
@@ -128,6 +128,28 @@ export async function getInternalEvents(): Promise<EventItem[]> {
       source: 'internal',
     }));
   } catch (error) {
+    if (getPrismaErrorCode(error) === 'P2022') {
+      const rows = await prisma.internalEvent.findMany({
+        select: {
+          id: true,
+          title: true,
+          start: true,
+          end: true,
+          location: true,
+        },
+        orderBy: { start: 'asc' },
+      });
+
+      return rows.map((row) => ({
+        id: row.id,
+        title: row.title,
+        start: row.start.toISOString(),
+        end: row.end?.toISOString(),
+        location: row.location ?? undefined,
+        source: 'internal',
+      }));
+    }
+
     if (shouldFallbackToSeed(error)) {
       return [];
     }
@@ -215,6 +237,10 @@ export async function getInternalEventRecurrenceGroupId(id: string): Promise<str
 
     return row?.recurrenceGroupId ?? undefined;
   } catch (error) {
+    if (getPrismaErrorCode(error) === 'P2022') {
+      return undefined;
+    }
+
     if (getPrismaErrorCode(error) === 'P2021') {
       throw new Error('Database schema is not up to date. Run Prisma schema sync to create internal_events table.');
     }
@@ -244,6 +270,10 @@ export async function getInternalEventsByRecurrenceGroup(
       location: row.location ?? undefined,
     }));
   } catch (error) {
+    if (getPrismaErrorCode(error) === 'P2022') {
+      return [];
+    }
+
     if (getPrismaErrorCode(error) === 'P2021') {
       throw new Error('Database schema is not up to date. Run Prisma schema sync to create internal_events table.');
     }
@@ -261,6 +291,10 @@ export async function deleteInternalEventSeries(recurrenceGroupId: string): Prom
     const result = await prisma.internalEvent.deleteMany({ where: { recurrenceGroupId } });
     return result.count;
   } catch (error) {
+    if (getPrismaErrorCode(error) === 'P2022') {
+      return 0;
+    }
+
     if (getPrismaErrorCode(error) === 'P2021') {
       throw new Error('Database schema is not up to date. Run Prisma schema sync to create internal_events table.');
     }
