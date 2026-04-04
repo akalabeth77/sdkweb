@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useLanguage } from '@/components/language-context';
 import { toDateLocale } from '@/lib/i18n';
 
@@ -16,7 +16,7 @@ export default function AdminUsersPage() {
   const [message, setMessage] = useState('');
   const { locale, t } = useLanguage();
 
-  async function loadUsers() {
+  const loadUsers = useCallback(async () => {
     const response = await fetch('/api/admin/users', { cache: 'no-store' });
 
     if (response.status === 403) {
@@ -33,11 +33,11 @@ export default function AdminUsersPage() {
     const payload = (await response.json()) as PendingUser[];
     setUsers(payload);
     setMessage('');
-  }
+  }, [t.admin.adminOnly, t.admin.loadUsersError]);
 
   useEffect(() => {
     void loadUsers();
-  }, []);
+  }, [loadUsers]);
 
   async function updateUser(id: string, action: 'approve' | 'reject') {
     const response = await fetch(`/api/admin/users/${id}`, {
