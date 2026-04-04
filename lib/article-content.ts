@@ -1,6 +1,6 @@
 import sanitizeHtml from 'sanitize-html';
 
-const sanitizeOptions: sanitizeHtml.IOptions = {
+const sanitizeOptions: Parameters<typeof sanitizeHtml>[1] = {
   allowedTags: [
     'p',
     'br',
