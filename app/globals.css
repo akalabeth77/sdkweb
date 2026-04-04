@@ -15,3 +15,8 @@ input, textarea, select, button { width:100%; padding:.7rem; border-radius: 10px
 button { cursor:pointer; background:#1d4ed8; color:white; border:none; font-weight:700; }
 img { max-width:100%; border-radius:10px; }
 .small { color:#666; font-size:.9rem; }
+.article-content p { margin: .5rem 0; }
+.article-content ul, .article-content ol { margin: .5rem 0; padding-left: 1.2rem; }
+.article-content blockquote { margin: .7rem 0; padding: .6rem .9rem; border-left: 4px solid #cbd5e1; background: #f8fafc; }
+.article-content pre { margin: .7rem 0; padding: .7rem .9rem; border-radius: 8px; background: #111827; color: #e5e7eb; overflow-x: auto; }
+.rich-editor .ql-editor { min-height: 180px; }

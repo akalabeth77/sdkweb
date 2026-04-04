@@ -15,6 +15,7 @@ export interface EventItem {
   start: string;
   end?: string;
   location?: string;
+  recurrenceGroupId?: string;
   source: 'facebook' | 'google' | 'internal';
 }
 

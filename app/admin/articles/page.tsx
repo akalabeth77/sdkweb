@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import { Article } from '@/types';
 import { useLanguage } from '@/components/language-context';
 import { getStatusLabel, toDateLocale } from '@/lib/i18n';
+import { RichTextEditor } from '@/components/rich-text-editor';
 
 type ArticleForm = {
   title: string;
@@ -11,9 +12,20 @@ type ArticleForm = {
   status: 'draft' | 'published';
 };
 
+function initialEditorValue(value: string): string {
+  if (/<\/?[a-z][\s\S]*>/i.test(value)) {
+    return value;
+  }
+
+  return `<p>${value.replace(/\n/g, '<br>')}</p>`;
+}
+
 export default function AdminArticlesPage() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [message, setMessage] = useState('');
+  const [createTitle, setCreateTitle] = useState('');
+  const [createContent, setCreateContent] = useState('<p></p>');
+  const [createStatus, setCreateStatus] = useState<'draft' | 'published'>('draft');
   const { locale, t } = useLanguage();
 
   async function loadArticles() {
@@ -29,21 +41,22 @@ export default function AdminArticlesPage() {
 
   async function createArticle(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const formData = new FormData(event.currentTarget);
 
     const response = await fetch('/api/admin/articles', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        title: formData.get('title'),
-        content: formData.get('content'),
-        status: formData.get('status')
+        title: createTitle,
+        content: createContent,
+        status: createStatus,
       })
     });
 
     if (response.ok) {
       setMessage(t.admin.articleCreated);
-      event.currentTarget.reset();
+      setCreateTitle('');
+      setCreateContent('<p></p>');
+      setCreateStatus('draft');
       await loadArticles();
       return;
     }
@@ -89,10 +102,11 @@ export default function AdminArticlesPage() {
     <section className="card">
       <h1>{t.admin.articlesTitle}</h1>
       <form onSubmit={createArticle}>
-        <label>{t.admin.articleTitle}<input name="title" required /></label>
-        <label>{t.admin.articleContent}<textarea name="content" rows={8} required /></label>
+        <label>{t.admin.articleTitle}<input name="title" value={createTitle} onChange={(event) => setCreateTitle(event.target.value)} required /></label>
+        <label>{t.admin.articleContent}</label>
+        <RichTextEditor value={createContent} onChange={setCreateContent} />
         <label>{t.admin.status}
-          <select name="status" defaultValue="draft">
+          <select name="status" value={createStatus} onChange={(event) => setCreateStatus(event.target.value as 'draft' | 'published')}>
             <option value="draft">{t.common.draft}</option>
             <option value="published">{t.common.published}</option>
           </select>
@@ -127,7 +141,7 @@ function EditableArticleCard({
   onDelete: (id: string) => Promise<void>;
 }) {
   const [title, setTitle] = useState(article.title);
-  const [content, setContent] = useState(article.content);
+  const [content, setContent] = useState(initialEditorValue(article.content));
   const [status, setStatus] = useState<'draft' | 'published'>(article.status);
   const { locale, t } = useLanguage();
 
@@ -144,8 +158,8 @@ function EditableArticleCard({
         <input value={title} onChange={(event) => setTitle(event.target.value)} required />
       </label>
       <label>{t.admin.articleContent}
-        <textarea value={content} onChange={(event) => setContent(event.target.value)} rows={6} required />
       </label>
+      <RichTextEditor value={content} onChange={setContent} />
       <label>{t.admin.status}
         <select value={status} onChange={(event) => setStatus(event.target.value as 'draft' | 'published')}>
           <option value="draft">{t.common.draft}</option>

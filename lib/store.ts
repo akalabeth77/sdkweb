@@ -124,6 +124,7 @@ export async function getInternalEvents(): Promise<EventItem[]> {
       start: row.start.toISOString(),
       end: row.end?.toISOString(),
       location: row.location ?? undefined,
+      recurrenceGroupId: row.recurrenceGroupId ?? undefined,
       source: 'internal',
     }));
   } catch (error) {
@@ -148,6 +149,7 @@ export async function saveInternalEvent(event: Omit<EventItem, 'source'>): Promi
         start: new Date(event.start),
         end: event.end ? new Date(event.end) : null,
         location: event.location,
+        recurrenceGroupId: event.recurrenceGroupId,
         source: 'internal',
       },
     });
@@ -191,6 +193,73 @@ export async function deleteInternalEvent(id: string): Promise<void> {
 
   try {
     await prisma.internalEvent.delete({ where: { id } });
+  } catch (error) {
+    if (getPrismaErrorCode(error) === 'P2021') {
+      throw new Error('Database schema is not up to date. Run Prisma schema sync to create internal_events table.');
+    }
+
+    throw error;
+  }
+}
+
+export async function getInternalEventRecurrenceGroupId(id: string): Promise<string | undefined> {
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL is not configured.');
+  }
+
+  try {
+    const row = await prisma.internalEvent.findUnique({
+      where: { id },
+      select: { recurrenceGroupId: true },
+    });
+
+    return row?.recurrenceGroupId ?? undefined;
+  } catch (error) {
+    if (getPrismaErrorCode(error) === 'P2021') {
+      throw new Error('Database schema is not up to date. Run Prisma schema sync to create internal_events table.');
+    }
+
+    throw error;
+  }
+}
+
+export async function getInternalEventsByRecurrenceGroup(
+  recurrenceGroupId: string
+): Promise<Array<Pick<EventItem, 'id' | 'title' | 'start' | 'end' | 'location'>>> {
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL is not configured.');
+  }
+
+  try {
+    const rows = await prisma.internalEvent.findMany({
+      where: { recurrenceGroupId },
+      orderBy: { start: 'asc' },
+    });
+
+    return rows.map((row) => ({
+      id: row.id,
+      title: row.title,
+      start: row.start.toISOString(),
+      end: row.end?.toISOString(),
+      location: row.location ?? undefined,
+    }));
+  } catch (error) {
+    if (getPrismaErrorCode(error) === 'P2021') {
+      throw new Error('Database schema is not up to date. Run Prisma schema sync to create internal_events table.');
+    }
+
+    throw error;
+  }
+}
+
+export async function deleteInternalEventSeries(recurrenceGroupId: string): Promise<number> {
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL is not configured.');
+  }
+
+  try {
+    const result = await prisma.internalEvent.deleteMany({ where: { recurrenceGroupId } });
+    return result.count;
   } catch (error) {
     if (getPrismaErrorCode(error) === 'P2021') {
       throw new Error('Database schema is not up to date. Run Prisma schema sync to create internal_events table.');

@@ -1,15 +1,18 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
+import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
 import { EventItem } from '@/types';
 import { useLanguage } from '@/components/language-context';
 import { getSourceLabel, toDateLocale } from '@/lib/i18n';
+
+type RepeatWeekday = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
 
 type EventForm = {
   title: string;
   start: string;
   end?: string;
   location?: string;
+  applyToSeries?: boolean;
 };
 
 function toDatetimeLocal(iso: string): string {
@@ -26,7 +29,29 @@ function toDatetimeLocal(iso: string): string {
 export default function AdminEventsPage() {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [message, setMessage] = useState('');
+  const [repeatEnabled, setRepeatEnabled] = useState(false);
+  const [repeatUntil, setRepeatUntil] = useState('');
+  const [repeatDays, setRepeatDays] = useState<RepeatWeekday[]>([]);
   const { t } = useLanguage();
+
+  const weekdayOptions: Array<{ value: RepeatWeekday; label: string }> = [
+    { value: 'mon', label: t.admin.weekdayMon },
+    { value: 'tue', label: t.admin.weekdayTue },
+    { value: 'wed', label: t.admin.weekdayWed },
+    { value: 'thu', label: t.admin.weekdayThu },
+    { value: 'fri', label: t.admin.weekdayFri },
+    { value: 'sat', label: t.admin.weekdaySat },
+    { value: 'sun', label: t.admin.weekdaySun },
+  ];
+
+  function toggleRepeatDay(day: RepeatWeekday, checked: boolean) {
+    if (checked) {
+      setRepeatDays((prev: RepeatWeekday[]) => (prev.includes(day) ? prev : [...prev, day]));
+      return;
+    }
+
+    setRepeatDays((prev: RepeatWeekday[]) => prev.filter((item: RepeatWeekday) => item !== day));
+  }
 
   async function loadEvents() {
     const response = await fetch('/api/admin/events', { cache: 'no-store' });
@@ -46,6 +71,16 @@ export default function AdminEventsPage() {
     const start = String(formData.get('start') || '');
     const end = String(formData.get('end') || '');
 
+    if (repeatEnabled && !repeatUntil) {
+      setMessage(t.admin.eventRepeatUntilRequired);
+      return;
+    }
+
+    if (repeatEnabled && repeatDays.length === 0) {
+      setMessage(t.admin.eventRepeatDaysRequired);
+      return;
+    }
+
     const response = await fetch('/api/admin/events', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -53,13 +88,24 @@ export default function AdminEventsPage() {
         title: formData.get('title'),
         start,
         end,
-        location: formData.get('location')
+        location: formData.get('location'),
+        repeat: repeatEnabled,
+        repeatUntil: repeatEnabled ? repeatUntil : '',
+        repeatWeekdays: repeatEnabled ? repeatDays : [],
       })
     });
 
     if (response.ok) {
-      setMessage(t.admin.eventCreated);
+      const payload = (await response.json().catch(() => ({}))) as { createdCount?: number };
+      if (typeof payload.createdCount === 'number' && payload.createdCount > 1) {
+        setMessage(`${t.admin.eventCreated} (${payload.createdCount})`);
+      } else {
+        setMessage(t.admin.eventCreated);
+      }
       event.currentTarget.reset();
+      setRepeatEnabled(false);
+      setRepeatUntil('');
+      setRepeatDays([]);
       await loadEvents();
       return;
     }
@@ -76,7 +122,12 @@ export default function AdminEventsPage() {
     });
 
     if (response.ok) {
-      setMessage(t.admin.eventUpdated);
+      const payload = (await response.json().catch(() => ({}))) as { updatedCount?: number };
+      if (typeof payload.updatedCount === 'number' && payload.updatedCount > 1) {
+        setMessage(`${t.admin.eventUpdated} (${payload.updatedCount})`);
+      } else {
+        setMessage(t.admin.eventUpdated);
+      }
       await loadEvents();
       return;
     }
@@ -85,17 +136,24 @@ export default function AdminEventsPage() {
     setMessage(payload.error ?? t.admin.eventUpdateError);
   }
 
-  async function deleteEvent(id: string) {
-    if (!window.confirm(t.admin.confirmDeleteEvent)) {
+  async function deleteEvent(id: string, deleteSeries?: boolean) {
+    const confirmText = deleteSeries ? t.admin.confirmDeleteEventSeries : t.admin.confirmDeleteEvent;
+    if (!window.confirm(confirmText)) {
       return;
     }
 
-    const response = await fetch(`/api/admin/events/${id}`, {
+    const suffix = deleteSeries ? '?scope=series' : '';
+    const response = await fetch(`/api/admin/events/${id}${suffix}`, {
       method: 'DELETE'
     });
 
     if (response.ok) {
-      setMessage(t.admin.eventDeleted);
+      const payload = (await response.json().catch(() => ({}))) as { deletedCount?: number };
+      if (typeof payload.deletedCount === 'number' && payload.deletedCount > 1) {
+        setMessage(`${t.admin.eventSeriesDeleted} (${payload.deletedCount})`);
+      } else {
+        setMessage(t.admin.eventDeleted);
+      }
       await loadEvents();
       return;
     }
@@ -111,6 +169,36 @@ export default function AdminEventsPage() {
         <label>{t.admin.eventStart}<input name="start" type="datetime-local" required /></label>
         <label>{t.admin.eventEnd}<input name="end" type="datetime-local" /></label>
         <label>{t.admin.eventLocation}<input name="location" /></label>
+        <label>
+          <input
+            type="checkbox"
+            checked={repeatEnabled}
+            onChange={(event: ChangeEvent<HTMLInputElement>) => setRepeatEnabled(event.target.checked)}
+          />
+          {' '}
+          {t.admin.eventRecurring}
+        </label>
+        {repeatEnabled ? (
+          <>
+            <label>{t.admin.eventRepeatUntil}<input type="date" value={repeatUntil} onChange={(event: ChangeEvent<HTMLInputElement>) => setRepeatUntil(event.target.value)} required /></label>
+            <fieldset>
+              <legend>{t.admin.eventRepeatDays}</legend>
+              <div className="grid" style={{ gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '0.5rem' }}>
+                {weekdayOptions.map((weekday) => (
+                  <label key={weekday.value} style={{ margin: 0 }}>
+                    <input
+                      type="checkbox"
+                      checked={repeatDays.includes(weekday.value)}
+                      onChange={(event: ChangeEvent<HTMLInputElement>) => toggleRepeatDay(weekday.value, event.target.checked)}
+                    />
+                    {' '}
+                    {weekday.label}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          </>
+        ) : null}
         <button type="submit">{t.admin.createEvent}</button>
       </form>
 
@@ -138,12 +226,13 @@ function EditableEventCard({
 }: {
   item: EventItem;
   onSave: (id: string, data: EventForm) => Promise<void>;
-  onDelete: (id: string) => Promise<void>;
+  onDelete: (id: string, deleteSeries?: boolean) => Promise<void>;
 }) {
   const [title, setTitle] = useState(item.title);
   const [start, setStart] = useState(toDatetimeLocal(item.start));
   const [end, setEnd] = useState(item.end ? toDatetimeLocal(item.end) : '');
   const [location, setLocation] = useState(item.location ?? '');
+  const [applyToSeries, setApplyToSeries] = useState(false);
   const { locale, t } = useLanguage();
 
   return (
@@ -156,6 +245,7 @@ function EditableEventCard({
           start: new Date(start).toISOString(),
           end: end ? new Date(end).toISOString() : undefined,
           location: location || undefined,
+          applyToSeries,
         });
       }}
     >
@@ -172,8 +262,22 @@ function EditableEventCard({
       <label>{t.admin.eventLocation}
         <input value={location} onChange={(event) => setLocation(event.target.value)} />
       </label>
+      {item.recurrenceGroupId ? (
+        <label>
+          <input
+            type="checkbox"
+            checked={applyToSeries}
+            onChange={(event) => setApplyToSeries(event.target.checked)}
+          />
+          {' '}
+          {t.admin.applyToEventSeries}
+        </label>
+      ) : null}
       <button type="submit">{t.common.save}</button>
       <button type="button" onClick={() => void onDelete(item.id)}>{t.common.delete}</button>
+      {item.recurrenceGroupId ? (
+        <button type="button" onClick={() => void onDelete(item.id, true)}>{t.admin.deleteEventSeries}</button>
+      ) : null}
     </form>
   );
 }

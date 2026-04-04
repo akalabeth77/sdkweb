@@ -1,12 +1,19 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { deleteInternalEvent, updateInternalEvent } from '@/lib/store';
+import {
+  deleteInternalEvent,
+  deleteInternalEventSeries,
+  getInternalEventsByRecurrenceGroup,
+  getInternalEventRecurrenceGroupId,
+  updateInternalEvent,
+} from '@/lib/store';
 
 const schema = z.object({
   title: z.string().min(3),
   start: z.string().min(1),
   end: z.string().optional().or(z.literal('')),
-  location: z.string().optional().or(z.literal(''))
+  location: z.string().optional().or(z.literal('')),
+  applyToSeries: z.boolean().optional().default(false),
 });
 
 function toIsoOrNull(value: string): string | null {
@@ -16,6 +23,20 @@ function toIsoOrNull(value: string): string | null {
   }
 
   return date.toISOString();
+}
+
+function applyTimeToDate(dateIso: string, timeIso: string): string {
+  const baseDate = new Date(dateIso);
+  const timeSource = new Date(timeIso);
+
+  baseDate.setHours(
+    timeSource.getHours(),
+    timeSource.getMinutes(),
+    timeSource.getSeconds(),
+    timeSource.getMilliseconds()
+  );
+
+  return baseDate.toISOString();
 }
 
 export async function PUT(
@@ -44,6 +65,33 @@ export async function PUT(
   }
 
   try {
+    if (parsed.data.applyToSeries) {
+      const recurrenceGroupId = await getInternalEventRecurrenceGroupId(params.id);
+      if (recurrenceGroupId) {
+        const seriesItems = await getInternalEventsByRecurrenceGroup(recurrenceGroupId);
+
+        await Promise.all(
+          seriesItems.map((seriesItem) => {
+            const adjustedStart = applyTimeToDate(seriesItem.start, startIso);
+            const adjustedEnd = endIso
+              ? applyTimeToDate(seriesItem.start, endIso)
+              : undefined;
+
+            return updateInternalEvent(seriesItem.id, {
+              title: parsed.data.title,
+              start: adjustedStart,
+              end: adjustedEnd,
+              location: parsed.data.location || undefined,
+            });
+          })
+        );
+
+        const updatedCount = seriesItems.length;
+
+        return NextResponse.json({ ok: true, updatedCount });
+      }
+    }
+
     await updateInternalEvent(params.id, {
       title: parsed.data.title,
       start: startIso,
@@ -51,7 +99,7 @@ export async function PUT(
       location: parsed.data.location || undefined,
     });
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, updatedCount: 1 });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unable to update event';
     return NextResponse.json({ error: message }, { status: 503 });
@@ -59,12 +107,21 @@ export async function PUT(
 }
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
+    const scope = new URL(request.url).searchParams.get('scope');
+    if (scope === 'series') {
+      const recurrenceGroupId = await getInternalEventRecurrenceGroupId(params.id);
+      if (recurrenceGroupId) {
+        const deletedCount = await deleteInternalEventSeries(recurrenceGroupId);
+        return NextResponse.json({ ok: true, deletedCount });
+      }
+    }
+
     await deleteInternalEvent(params.id);
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, deletedCount: 1 });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unable to delete event';
     return NextResponse.json({ error: message }, { status: 503 });

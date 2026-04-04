@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getArticles, saveArticle } from '@/lib/store';
+import { extractPlainText, normalizeArticleHtml } from '@/lib/article-content';
 
 const schema = z.object({
   title: z.string().min(3),
-  content: z.string().min(10),
+  content: z.string().min(1),
   status: z.enum(['draft', 'published'])
 });
 
@@ -25,11 +26,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
+  const normalizedContent = normalizeArticleHtml(parsed.data.content);
+  const plainText = extractPlainText(normalizedContent);
+  if (plainText.length < 10) {
+    return NextResponse.json({ error: 'Article content is too short.' }, { status: 400 });
+  }
+
   try {
     await saveArticle({
       id: crypto.randomUUID(),
       title: parsed.data.title,
-      content: parsed.data.content,
+      content: normalizedContent,
       status: parsed.data.status,
       createdAt: new Date().toISOString(),
       author: 'Admin'

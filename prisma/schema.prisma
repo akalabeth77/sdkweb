@@ -25,6 +25,7 @@ model InternalEvent {
   end       DateTime?
   location  String?
   source    String   @default("internal")
+  recurrenceGroupId String?
   createdAt DateTime @default(now())
 
   @@map("internal_events")

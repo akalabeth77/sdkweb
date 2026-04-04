@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import 'react-quill/dist/quill.snow.css';
 import { ReactNode } from 'react';
 import { Navigation } from '@/components/navigation';
 import { Providers } from '@/components/providers';

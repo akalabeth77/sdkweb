@@ -111,6 +111,16 @@ Editor galérie podporuje aj albumové zdroje:
 - `google-drive` - zadaj verejný Google Drive folder URL alebo folder ID; potrebuje `GOOGLE_DRIVE_API_KEY`
 - `local-folder` - zadaj relatívnu cestu pod `LOCAL_GALLERY_ROOT`; vhodné pre lokálny/self-hosted server, nie pre trvalé úložisko na Vercel
 
+### Eventy - opakovanie a séria
+- Pri vytváraní eventu môžeš zapnúť opakovanie, vybrať dni v týždni a dátum "opakovať do".
+- Pri editácii existujúceho opakovaného eventu môžeš zvoliť "upraviť celú sériu".
+- Pri mazaní je dostupná aj akcia "vymazať celú sériu".
+
+Po pullnutí nových zmien aplikuj migrácie, aby sa vytvoril stĺpec `recurrenceGroupId` v `internal_events`:
+```bash
+npx prisma migrate deploy
+```
+
 ## Registrácia používateľov
 - Verejná registrácia: `/register`
 - Nový účet má stav `pending` a prihlásenie je možné až po schválení adminom.
