@@ -44,6 +44,7 @@ NEXTAUTH_SECRET=swingdancekosiceweb
 
 # Databáza (Supabase / Neon)
 DATABASE_URL=postgresql://USER:PASSWORD@HOST:5432/DB_NAME?sslmode=require
+DIRECT_URL=postgresql://USER:PASSWORD@HOST:5432/DB_NAME?sslmode=require
 
 # Voliteľné: Google OAuth login
 GOOGLE_CLIENT_ID=
@@ -74,8 +75,11 @@ npm run build
 ```
 
 Vercel deteguje Next.js projekt automaticky.
-Build script na Verceli automaticky spustí `prisma migrate deploy`, ak sú dostupné `VERCEL` a `DATABASE_URL`.
-Pred buildom aj runtime nastav vo Vercel Project Settings -> Environment Variables hodnotu `DATABASE_URL` pre Production aj Preview.
+Build script na Verceli automaticky spustí `prisma migrate deploy`, ak sú dostupné `VERCEL`, `DATABASE_URL` a `DIRECT_URL`.
+Pred buildom aj runtime nastav vo Vercel Project Settings -> Environment Variables hodnoty `DATABASE_URL` a `DIRECT_URL` pre Production aj Preview.
+Pre Supabase používaj:
+- `DATABASE_URL` = pooled / transaction / pooler connection pre runtime aplikácie
+- `DIRECT_URL` = direct Postgres connection pre Prisma migrácie
 Po nastavení `DATABASE_URL` aplikuj schému aj na cieľovej databáze (`npx prisma db push` alebo produkčne `npx prisma migrate deploy`), inak Prisma vráti chybu `P2021` (chýbajúca tabuľka).
 
 ### Rýchly fix chyby `internal_events` neexistuje
