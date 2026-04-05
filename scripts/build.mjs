@@ -12,6 +12,20 @@ function run(command, args, env = process.env) {
   }
 }
 
+function runWithResult(command, args, env = process.env) {
+  const result = spawnSync(command, args, {
+    stdio: 'pipe',
+    shell: process.platform === 'win32',
+    env,
+    encoding: 'utf8',
+  });
+
+  if (result.stdout) process.stdout.write(result.stdout);
+  if (result.stderr) process.stderr.write(result.stderr);
+
+  return result;
+}
+
 const shouldRunMigrations = Boolean(process.env.VERCEL && process.env.DATABASE_URL);
 
 if (shouldRunMigrations) {
@@ -22,10 +36,24 @@ if (shouldRunMigrations) {
   }
 
   console.log('Running Prisma migrations for Vercel build using DIRECT_URL...');
-  run('npx', ['prisma', 'migrate', 'deploy'], {
+  const migrationEnv = {
     ...process.env,
     DATABASE_URL: process.env.DIRECT_URL,
-  });
+  };
+
+  const migrateResult = runWithResult('npx', ['prisma', 'migrate', 'deploy'], migrationEnv);
+  if (migrateResult.status !== 0) {
+    const output = `${migrateResult.stdout ?? ''}\n${migrateResult.stderr ?? ''}`;
+    if (output.includes('P3005')) {
+      console.warn('Detected P3005 (existing schema without Prisma migration history). Falling back to prisma db push.');
+      const dbPushResult = runWithResult('npx', ['prisma', 'db', 'push'], migrationEnv);
+      if (dbPushResult.status !== 0) {
+        process.exit(dbPushResult.status ?? 1);
+      }
+    } else {
+      process.exit(migrateResult.status ?? 1);
+    }
+  }
 } else {
   console.log('Skipping Prisma migrate deploy for non-Vercel or missing DATABASE_URL.');
 }

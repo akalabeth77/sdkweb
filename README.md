@@ -80,6 +80,8 @@ Pred buildom aj runtime nastav vo Vercel Project Settings -> Environment Variabl
 Pre Supabase používaj:
 - `DATABASE_URL` = pooled / transaction / pooler connection pre runtime aplikácie
 - `DIRECT_URL` = direct Postgres connection pre Prisma migrácie
+Ak `migrate deploy` vráti `P3005` (existujúca DB bez Prisma migration histórie), build script automaticky použije `prisma db push` ako fallback pre prvé zosúladenie schémy.
+Odporúčané dlhodobé riešenie je spraviť Prisma baseline migráciu pre produkčnú databázu.
 Po nastavení `DATABASE_URL` aplikuj schému aj na cieľovej databáze (`npx prisma db push` alebo produkčne `npx prisma migrate deploy`), inak Prisma vráti chybu `P2021` (chýbajúca tabuľka).
 
 ### Rýchly fix chyby `internal_events` neexistuje
