@@ -1,4 +1,4 @@
-import { Article, EventItem, GalleryAlbum, GalleryAlbumSource, MediaItem } from '@/types';
+import { Article, EventCategory, EventItem, GalleryAlbum, GalleryAlbumSource, MediaItem } from '@/types';
 import { prisma } from './db';
 import seedArticles from './seed-articles.json';
 
@@ -54,6 +54,15 @@ function shouldFallbackToSeed(error: unknown): boolean {
 
 function mapArticleStatus(status: string): 'draft' | 'published' {
   return status === 'published' ? 'published' : 'draft';
+}
+
+function mapEventCategory(category: string | null | undefined): EventCategory {
+  if (category === 'course') return 'course';
+  if (category === 'dance-party') return 'dance-party';
+  if (category === 'workshop') return 'workshop';
+  if (category === 'festival') return 'festival';
+  if (category === 'concert') return 'concert';
+  return 'other';
 }
 
 export async function getArticles(): Promise<Article[]> {
@@ -145,7 +154,7 @@ export async function getInternalEvents(): Promise<EventItem[]> {
       id: row.id,
       title: row.title,
       description: row.description ?? undefined,
-      category: row.category ?? 'other',
+      category: mapEventCategory(row.category),
       start: row.start.toISOString(),
       end: row.end?.toISOString(),
       location: row.location ?? undefined,
@@ -296,7 +305,7 @@ export async function getInternalEventsByRecurrenceGroup(
       id: row.id,
       title: row.title,
       description: row.description ?? undefined,
-      category: row.category ?? 'other',
+      category: mapEventCategory(row.category),
       start: row.start.toISOString(),
       end: row.end?.toISOString(),
       location: row.location ?? undefined,
