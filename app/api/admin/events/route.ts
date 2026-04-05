@@ -3,9 +3,12 @@ import { z } from 'zod';
 import { getInternalEvents, saveInternalEvent } from '@/lib/store';
 
 const weekdaySchema = z.enum(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']);
+const categorySchema = z.enum(['course', 'dance-party', 'workshop', 'festival', 'concert', 'other']);
 
 const schema = z.object({
   title: z.string().min(3),
+  description: z.string().optional().or(z.literal('')),
+  category: categorySchema.optional().default('other'),
   start: z.string().min(1),
   end: z.string().optional().or(z.literal('')),
   location: z.string().optional().or(z.literal('')),
@@ -73,6 +76,8 @@ export async function POST(request: Request) {
       await saveInternalEvent({
         id: crypto.randomUUID(),
         title: parsed.data.title,
+        description: parsed.data.description || undefined,
+        category: parsed.data.category,
         start: startIso,
         end: endIso,
         location: parsed.data.location || undefined,
@@ -129,6 +134,8 @@ export async function POST(request: Request) {
         saveInternalEvent({
           id: crypto.randomUUID(),
           title: parsed.data.title,
+          description: parsed.data.description || undefined,
+          category: parsed.data.category,
           start: occurrence.start.toISOString(),
           end: occurrence.end?.toISOString(),
           location: parsed.data.location || undefined,

@@ -1,4 +1,5 @@
 export type Locale = 'sk' | 'en';
+import { EventCategory } from '@/types';
 
 export const LOCALE_COOKIE = 'portal-locale';
 export const defaultLocale: Locale = 'sk';
@@ -25,6 +26,8 @@ export const messages = {
     common: {
       save: 'Uložiť zmeny',
       delete: 'Vymazať',
+      copyLink: 'Kopírovať odkaz',
+      copied: 'Skopírované',
       approve: 'Schváliť',
       reject: 'Zamietnuť',
       draft: 'Draft',
@@ -48,6 +51,17 @@ export const messages = {
     },
     events: {
       title: 'Eventy',
+      description: 'Sleduj najbližšie kurzy, tanciarne, workshopy a ďalšie podujatia swing komunity.',
+      currentMonth: 'Aktuálny mesiac',
+      noEventsThisMonth: 'Tento mesiac zatiaľ nie sú žiadne eventy.',
+      shareEvent: 'Zdieľať event',
+      shareArticle: 'Zdieľať článok',
+      filterLabel: 'Filtrovať podľa kategórie',
+      filterAll: 'Všetky kategórie',
+      selectedDay: 'Eventy pre vybraný deň',
+      clearDayFilter: 'Zrušiť výber dňa',
+      readMore: 'Detail eventu',
+      backToEvents: 'Späť na eventy',
     },
     gallery: {
       title: 'Galéria',
@@ -55,6 +69,9 @@ export const messages = {
     },
     articles: {
       title: 'Články',
+      shareArticle: 'Zdieľať článok',
+      readMore: 'Čítať detail',
+      backToArticles: 'Späť na články',
     },
     auth: {
       loginTitle: 'Prihlásenie',
@@ -100,6 +117,8 @@ export const messages = {
       eventStart: 'Začiatok',
       eventEnd: 'Koniec',
       eventLocation: 'Lokalita',
+      eventDescription: 'Popis eventu',
+      eventCategory: 'Kategória eventu',
       eventRecurring: 'Opakujúci sa event',
       eventRepeatUntil: 'Opakovať do dátumu',
       eventRepeatDays: 'Dni opakovania',
@@ -123,6 +142,12 @@ export const messages = {
       deleteEventSeries: 'Vymazať celú sériu',
       eventRepeatUntilRequired: 'Pri opakovanom evente je potrebné vyplniť dátum do.',
       eventRepeatDaysRequired: 'Pri opakovanom evente vyber aspoň jeden deň v týždni.',
+      eventCategoryCourse: 'Kurz',
+      eventCategoryDanceParty: 'Tančiareň',
+      eventCategoryWorkshop: 'Workshop',
+      eventCategoryFestival: 'Festival',
+      eventCategoryConcert: 'Koncert',
+      eventCategoryOther: 'Iné',
       galleryTitle: 'Editor galérie',
       createGalleryItem: 'Pridať obrázok',
       createGalleryAlbum: 'Pridať album',
@@ -178,6 +203,8 @@ export const messages = {
     common: {
       save: 'Save changes',
       delete: 'Delete',
+      copyLink: 'Copy link',
+      copied: 'Copied',
       approve: 'Approve',
       reject: 'Reject',
       draft: 'Draft',
@@ -201,6 +228,17 @@ export const messages = {
     },
     events: {
       title: 'Events',
+      description: 'Follow upcoming courses, dance socials, workshops, and other swing community happenings.',
+      currentMonth: 'Current month',
+      noEventsThisMonth: 'There are no events this month yet.',
+      shareEvent: 'Share event',
+      shareArticle: 'Share article',
+      filterLabel: 'Filter by category',
+      filterAll: 'All categories',
+      selectedDay: 'Events for selected day',
+      clearDayFilter: 'Clear day selection',
+      readMore: 'Event detail',
+      backToEvents: 'Back to events',
     },
     gallery: {
       title: 'Gallery',
@@ -208,6 +246,9 @@ export const messages = {
     },
     articles: {
       title: 'Articles',
+      shareArticle: 'Share article',
+      readMore: 'Read detail',
+      backToArticles: 'Back to articles',
     },
     auth: {
       loginTitle: 'Login',
@@ -253,6 +294,8 @@ export const messages = {
       eventStart: 'Start',
       eventEnd: 'End',
       eventLocation: 'Location',
+      eventDescription: 'Event description',
+      eventCategory: 'Event category',
       eventRecurring: 'Recurring event',
       eventRepeatUntil: 'Repeat until date',
       eventRepeatDays: 'Repeat days',
@@ -276,6 +319,12 @@ export const messages = {
       deleteEventSeries: 'Delete whole series',
       eventRepeatUntilRequired: 'Repeat-until date is required for recurring events.',
       eventRepeatDaysRequired: 'Select at least one weekday for recurring events.',
+      eventCategoryCourse: 'Course',
+      eventCategoryDanceParty: 'Dance social',
+      eventCategoryWorkshop: 'Workshop',
+      eventCategoryFestival: 'Festival',
+      eventCategoryConcert: 'Concert',
+      eventCategoryOther: 'Other',
       galleryTitle: 'Gallery editor',
       createGalleryItem: 'Add image',
       createGalleryAlbum: 'Add album',
@@ -336,4 +385,23 @@ export function getSourceLabel(locale: Locale, source: string): string {
 export function getStatusLabel(locale: Locale, status: string): string {
   const common = getMessages(locale).common;
   return status === 'published' ? common.published : common.draft;
+}
+
+export function getEventCategoryLabel(locale: Locale, category: EventCategory | string | undefined): string {
+  const admin = getMessages(locale).admin;
+  if (category === 'course') return admin.eventCategoryCourse;
+  if (category === 'dance-party') return admin.eventCategoryDanceParty;
+  if (category === 'workshop') return admin.eventCategoryWorkshop;
+  if (category === 'festival') return admin.eventCategoryFestival;
+  if (category === 'concert') return admin.eventCategoryConcert;
+  return admin.eventCategoryOther;
+}
+
+export function getEventCategoryColor(category: EventCategory | string | undefined): string {
+  if (category === 'course') return '#2563eb';
+  if (category === 'dance-party') return '#db2777';
+  if (category === 'workshop') return '#7c3aed';
+  if (category === 'festival') return '#ea580c';
+  if (category === 'concert') return '#059669';
+  return '#6b7280';
 }

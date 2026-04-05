@@ -22,6 +22,8 @@ model Article {
 model InternalEvent {
   id        String   @id
   title     String
+  description String?
+  category  String?  @default("other")
   start     DateTime
   end       DateTime?
   location  String?

@@ -2,15 +2,7 @@ import { EventItem, MediaItem } from '@/types';
 import { getGalleryAlbums, getInternalEvents, getInternalMedia } from './store';
 import { fetchAlbumMedia } from './gallery-sources';
 
-const fallbackEvents: EventItem[] = [
-  {
-    id: 'e1',
-    title: 'Swing social dance night',
-    start: '2026-04-10T18:00:00.000Z',
-    location: 'Bratislava',
-    source: 'internal'
-  }
-];
+const fallbackEvents: EventItem[] = [];
 
 const fallbackMedia: MediaItem[] = [
   {

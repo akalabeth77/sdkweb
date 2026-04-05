@@ -1,5 +1,7 @@
 export type UserRole = 'guest' | 'member' | 'editor' | 'admin';
 
+export type EventCategory = 'course' | 'dance-party' | 'workshop' | 'festival' | 'concert' | 'other';
+
 export interface Article {
   id: string;
   title: string;
@@ -12,6 +14,8 @@ export interface Article {
 export interface EventItem {
   id: string;
   title: string;
+  description?: string;
+  category?: EventCategory;
   start: string;
   end?: string;
   location?: string;

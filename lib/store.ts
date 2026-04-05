@@ -144,6 +144,8 @@ export async function getInternalEvents(): Promise<EventItem[]> {
     return rows.map((row) => ({
       id: row.id,
       title: row.title,
+      description: row.description ?? undefined,
+      category: row.category ?? 'other',
       start: row.start.toISOString(),
       end: row.end?.toISOString(),
       location: row.location ?? undefined,
@@ -169,6 +171,7 @@ export async function getInternalEvents(): Promise<EventItem[]> {
         start: row.start.toISOString(),
         end: row.end?.toISOString(),
         location: row.location ?? undefined,
+        category: 'other',
         source: 'internal',
       }));
     }
@@ -191,6 +194,8 @@ export async function saveInternalEvent(event: Omit<EventItem, 'source'>): Promi
       data: {
         id: event.id,
         title: event.title,
+        description: event.description,
+        category: event.category ?? 'other',
         start: new Date(event.start),
         end: event.end ? new Date(event.end) : null,
         location: event.location,
@@ -217,6 +222,8 @@ export async function updateInternalEvent(id: string, event: Omit<EventItem, 'id
       where: { id },
       data: {
         title: event.title,
+        description: event.description,
+        category: event.category ?? 'other',
         start: new Date(event.start),
         end: event.end ? new Date(event.end) : null,
         location: event.location,
@@ -288,6 +295,8 @@ export async function getInternalEventsByRecurrenceGroup(
     return rows.map((row) => ({
       id: row.id,
       title: row.title,
+      description: row.description ?? undefined,
+      category: row.category ?? 'other',
       start: row.start.toISOString(),
       end: row.end?.toISOString(),
       location: row.location ?? undefined,

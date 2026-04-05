@@ -3,7 +3,7 @@ import Image from 'next/image';
 import { fetchPortalData } from '@/lib/social';
 import { getArticles } from '@/lib/store';
 import { getServerMessages } from '@/lib/i18n-server';
-import { getSourceLabel, getStatusLabel, toDateLocale } from '@/lib/i18n';
+import { getEventCategoryLabel, getSourceLabel, getStatusLabel, toDateLocale } from '@/lib/i18n';
 
 export default async function HomePage() {
   const { locale, t } = getServerMessages();
@@ -24,7 +24,7 @@ export default async function HomePage() {
             <p key={event.id}>
               <strong>{event.title}</strong>
               <br />
-              <span className="small">{new Date(event.start).toLocaleString(dateLocale)} · {getSourceLabel(locale, event.source)}</span>
+              <span className="small">{new Date(event.start).toLocaleString(dateLocale)} · {getEventCategoryLabel(locale, event.category)} · {getSourceLabel(locale, event.source)}</span>
             </p>
           ))}
           <Link href="/events">{t.home.viewAllEvents}</Link>

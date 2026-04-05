@@ -130,8 +130,14 @@ Editor galérie podporuje aj albumové zdroje:
 - Pri vytváraní eventu môžeš zapnúť opakovanie, vybrať dni v týždni a dátum "opakovať do".
 - Pri editácii existujúceho opakovaného eventu môžeš zvoliť "upraviť celú sériu".
 - Pri mazaní je dostupná aj akcia "vymazať celú sériu".
+- Eventy podporujú aj polia `description` a `category` (`course`, `dance-party`, `workshop`, `festival`, `concert`, `other`).
+- Verejné stránky článkov a eventov obsahujú tlačidlá na zdieľanie.
+- Stránka eventov obsahuje mini kalendár aktuálneho mesiaca s farebným odlíšením podľa kategórie eventu.
+- Stránka eventov podporuje filtrovanie podľa kategórie.
+- Klik na deň v mini kalendári zobrazí eventy pre vybraný deň.
+- Články aj eventy majú samostatné detail stránky vhodné na priame zdieľanie URL.
 
-Po pullnutí nových zmien aplikuj migrácie, aby sa vytvoril stĺpec `recurrenceGroupId` v `internal_events`:
+Po pullnutí nových zmien aplikuj migrácie, aby sa vytvorili nové stĺpce v `internal_events` (`recurrenceGroupId`, `description`, `category`):
 ```bash
 npx prisma migrate deploy
 ```

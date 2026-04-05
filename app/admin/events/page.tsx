@@ -9,6 +9,8 @@ type RepeatWeekday = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
 
 type EventForm = {
   title: string;
+  description?: string;
+  category?: EventItem['category'];
   start: string;
   end?: string;
   location?: string;
@@ -33,6 +35,14 @@ export default function AdminEventsPage() {
   const [repeatUntil, setRepeatUntil] = useState('');
   const [repeatDays, setRepeatDays] = useState<RepeatWeekday[]>([]);
   const { t } = useLanguage();
+  const categoryOptions: Array<{ value: NonNullable<EventItem['category']>; label: string }> = [
+    { value: 'course', label: t.admin.eventCategoryCourse },
+    { value: 'dance-party', label: t.admin.eventCategoryDanceParty },
+    { value: 'workshop', label: t.admin.eventCategoryWorkshop },
+    { value: 'festival', label: t.admin.eventCategoryFestival },
+    { value: 'concert', label: t.admin.eventCategoryConcert },
+    { value: 'other', label: t.admin.eventCategoryOther },
+  ];
 
   const weekdayOptions: Array<{ value: RepeatWeekday; label: string }> = [
     { value: 'mon', label: t.admin.weekdayMon },
@@ -86,6 +96,8 @@ export default function AdminEventsPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         title: formData.get('title'),
+        description: formData.get('description'),
+        category: formData.get('category'),
         start,
         end,
         location: formData.get('location'),
@@ -166,6 +178,14 @@ export default function AdminEventsPage() {
       <h1>{t.admin.eventsTitle}</h1>
       <form onSubmit={createEvent}>
         <label>{t.admin.eventTitle}<input name="title" required /></label>
+        <label>{t.admin.eventDescription}<textarea name="description" rows={4} /></label>
+        <label>{t.admin.eventCategory}
+          <select name="category" defaultValue="other">
+            {categoryOptions.map((option) => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+          </select>
+        </label>
         <label>{t.admin.eventStart}<input name="start" type="datetime-local" required /></label>
         <label>{t.admin.eventEnd}<input name="end" type="datetime-local" /></label>
         <label>{t.admin.eventLocation}<input name="location" /></label>
@@ -229,11 +249,21 @@ function EditableEventCard({
   onDelete: (id: string, deleteSeries?: boolean) => Promise<void>;
 }) {
   const [title, setTitle] = useState(item.title);
+  const [description, setDescription] = useState(item.description ?? '');
+  const [category, setCategory] = useState<NonNullable<EventItem['category']>>(item.category ?? 'other');
   const [start, setStart] = useState(toDatetimeLocal(item.start));
   const [end, setEnd] = useState(item.end ? toDatetimeLocal(item.end) : '');
   const [location, setLocation] = useState(item.location ?? '');
   const [applyToSeries, setApplyToSeries] = useState(false);
   const { locale, t } = useLanguage();
+  const categoryOptions: Array<{ value: NonNullable<EventItem['category']>; label: string }> = [
+    { value: 'course', label: t.admin.eventCategoryCourse },
+    { value: 'dance-party', label: t.admin.eventCategoryDanceParty },
+    { value: 'workshop', label: t.admin.eventCategoryWorkshop },
+    { value: 'festival', label: t.admin.eventCategoryFestival },
+    { value: 'concert', label: t.admin.eventCategoryConcert },
+    { value: 'other', label: t.admin.eventCategoryOther },
+  ];
 
   return (
     <form
@@ -242,6 +272,8 @@ function EditableEventCard({
         event.preventDefault();
         await onSave(item.id, {
           title,
+          description: description || undefined,
+          category,
           start: new Date(start).toISOString(),
           end: end ? new Date(end).toISOString() : undefined,
           location: location || undefined,
@@ -252,6 +284,16 @@ function EditableEventCard({
       <div className="small">{getSourceLabel(locale, item.source)} · {new Date(item.start).toLocaleString(toDateLocale(locale))}</div>
       <label>{t.admin.eventTitle}
         <input value={title} onChange={(event) => setTitle(event.target.value)} required />
+      </label>
+      <label>{t.admin.eventDescription}
+        <textarea value={description} onChange={(event) => setDescription(event.target.value)} rows={4} />
+      </label>
+      <label>{t.admin.eventCategory}
+        <select value={category} onChange={(event) => setCategory(event.target.value as NonNullable<EventItem['category']>)}>
+          {categoryOptions.map((option) => (
+            <option key={option.value} value={option.value}>{option.label}</option>
+          ))}
+        </select>
       </label>
       <label>{t.admin.eventStart}
         <input type="datetime-local" value={start} onChange={(event) => setStart(event.target.value)} required />
