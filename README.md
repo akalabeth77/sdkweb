@@ -78,8 +78,16 @@ Vercel deteguje Next.js projekt automaticky.
 Build script na Verceli automaticky spustí `prisma migrate deploy`, ak sú dostupné `VERCEL`, `DATABASE_URL` a `DIRECT_URL`.
 Pred buildom aj runtime nastav vo Vercel Project Settings -> Environment Variables hodnoty `DATABASE_URL` a `DIRECT_URL` pre Production aj Preview.
 Pre Supabase používaj:
-- `DATABASE_URL` = pooled / transaction / pooler connection pre runtime aplikácie
-- `DIRECT_URL` = direct Postgres connection pre Prisma migrácie
+- `DATABASE_URL` = transaction pooler URL (port `6543`) pre runtime aplikácie
+- `DIRECT_URL` = direct Postgres URL (port `5432`) pre Prisma migrácie
+
+Príklad pre serverless runtime (odporúčané parametre):
+```bash
+DATABASE_URL=postgresql://USER:PASSWORD@aws-0-REGION.pooler.supabase.com:6543/postgres?sslmode=require&pgbouncer=true&connection_limit=1
+DIRECT_URL=postgresql://USER:PASSWORD@db.PROJECT_REF.supabase.co:5432/postgres?sslmode=require
+```
+
+Ak použiješ session pooler URL na porte `5432` pre runtime, môžeš dostať chybu `MaxClientsInSessionMode`.
 Ak `migrate deploy` vráti `P3005` (existujúca DB bez Prisma migration histórie), build script automaticky použije `prisma db push` ako fallback pre prvé zosúladenie schémy.
 Odporúčané dlhodobé riešenie je spraviť Prisma baseline migráciu pre produkčnú databázu.
 Po nastavení `DATABASE_URL` aplikuj schému aj na cieľovej databáze (`npx prisma db push` alebo produkčne `npx prisma migrate deploy`), inak Prisma vráti chybu `P2021` (chýbajúca tabuľka).

@@ -4,7 +4,25 @@ import seedArticles from './seed-articles.json';
 
 type PrismaErrorLike = {
   code?: string;
+  message?: string;
 };
+
+function isPoolExhaustionError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') {
+    return false;
+  }
+
+  const message = (error as PrismaErrorLike).message;
+  if (!message) {
+    return false;
+  }
+
+  return (
+    message.includes('MaxClientsInSessionMode') ||
+    message.includes('max clients reached') ||
+    message.includes('too many clients')
+  );
+}
 
 function getPrismaErrorCode(error: unknown): string | undefined {
   if (!error || typeof error !== 'object') {
@@ -26,7 +44,12 @@ function shouldFallbackToSeed(error: unknown): boolean {
   }
 
   const prismaError = error as PrismaErrorLike;
-  return prismaError.code === 'P2021' || prismaError.code === 'P2022' || prismaError.code === 'P1001';
+  return (
+    prismaError.code === 'P2021' ||
+    prismaError.code === 'P2022' ||
+    prismaError.code === 'P1001' ||
+    isPoolExhaustionError(error)
+  );
 }
 
 function mapArticleStatus(status: string): 'draft' | 'published' {
