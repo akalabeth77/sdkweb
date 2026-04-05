@@ -37,7 +37,17 @@ img { max-width:100%; border-radius:10px; }
 .calendar-grid { display:grid; grid-template-columns:repeat(7, minmax(0,1fr)); gap:.35rem; }
 .calendar-weekdays { margin-bottom:.35rem; }
 .calendar-weekday { text-align:center; font-size:.8rem; color:#6b7280; font-weight:700; }
-.calendar-day { min-height:64px; border:1px solid #e5e7eb; border-radius:10px; padding:.4rem; background:#fff; text-align:left; }
+.calendar-day {
+	min-height:64px;
+	border:1px solid #e5e7eb;
+	border-radius:10px;
+	padding:.4rem;
+	background:#fff;
+	text-align:left;
+	color:#111827;
+	margin-top:0;
+	width:100%;
+}
 .calendar-day-selected { border-color:#1d4ed8; box-shadow:0 0 0 2px rgba(29, 78, 216, 0.12); }
 .calendar-day-empty { border:none; background:transparent; }
 .calendar-day-number { font-weight:700; font-size:.9rem; }
