@@ -27,7 +27,6 @@ function endOfMonth(date: Date) {
   return new Date(date.getFullYear(), date.getMonth() + 1, 0);
 }
 
-export function EventMiniCalendar({ events, locale, monthLabel, emptyLabel, selectedDay, onSelectDay }: Props) {
 function toDateKey(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');

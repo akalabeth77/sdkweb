@@ -58,4 +58,4 @@ if (shouldRunMigrations) {
   console.log('Skipping Prisma migrate deploy for non-Vercel or missing DATABASE_URL.');
 }
 
-run('npx', ['next', 'build']);
+run('npx', ['--no-install', 'next', 'build']);
