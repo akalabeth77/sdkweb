@@ -34,6 +34,9 @@ img { max-width:100%; border-radius:10px; }
 .share-btn, .share-link { width:auto; margin-top:0; padding:.45rem .75rem; border-radius:999px; background:#eff6ff; color:#1e3a8a; border:1px solid #bfdbfe; font-size:.9rem; font-weight:600; text-decoration:none; }
 .calendar-card { position:sticky; top:1rem; }
 .calendar-header { display:flex; justify-content:space-between; gap:1rem; align-items:baseline; }
+.calendar-controls { display:flex; gap:.5rem; flex-wrap:wrap; margin:.6rem 0; }
+.calendar-select-row label { display:grid; gap:.35rem; }
+.calendar-select-row select { margin-top:0; min-width:160px; }
 .calendar-grid { display:grid; grid-template-columns:repeat(7, minmax(0,1fr)); gap:.35rem; }
 .calendar-weekdays { margin-bottom:.35rem; }
 .calendar-weekday { text-align:center; font-size:.8rem; color:#6b7280; font-weight:700; }

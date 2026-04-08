@@ -14,6 +14,11 @@ type Props = {
     title: string;
     description: string;
     currentMonth: string;
+    calendarTitle: string;
+    previousMonth: string;
+    nextMonth: string;
+    month: string;
+    year: string;
     noEventsThisMonth: string;
     shareEvent: string;
     filterLabel: string;
@@ -29,7 +34,19 @@ type Props = {
 
 export function EventsExplorer({ events, locale, labels, categoryLabels }: Props) {
   const [selectedCategory, setSelectedCategory] = useState<'all' | EventCategory>('all');
-  const [selectedDay, setSelectedDay] = useState<number | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [visibleMonth, setVisibleMonth] = useState(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  });
+
+  function toDateKey(value: string): string {
+    const date = new Date(value);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
 
   const filteredEvents = useMemo(() => {
     return events.filter((event) => {
@@ -37,20 +54,42 @@ export function EventsExplorer({ events, locale, labels, categoryLabels }: Props
         return false;
       }
 
-      if (selectedDay !== null) {
-        const eventDate = new Date(event.start);
-        const now = new Date();
-        if (eventDate.getFullYear() !== now.getFullYear() || eventDate.getMonth() !== now.getMonth() || eventDate.getDate() !== selectedDay) {
-          return false;
-        }
+      if (selectedDate !== null && toDateKey(event.start) !== selectedDate) {
+        return false;
       }
 
       return true;
     });
-  }, [events, selectedCategory, selectedDay]);
+  }, [events, selectedCategory, selectedDate]);
+
+  const selectedDateLabel = selectedDate
+    ? new Date(`${selectedDate}T00:00:00`).toLocaleDateString(toDateLocale(locale), {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    })
+    : null;
 
   return (
     <div className="grid grid-2" style={{ alignItems: 'start' }}>
+      <EventMiniCalendar
+        events={events}
+        locale={locale}
+        monthLabel={labels.currentMonth}
+        calendarTitle={labels.calendarTitle}
+        previousMonthLabel={labels.previousMonth}
+        nextMonthLabel={labels.nextMonth}
+        monthPickerLabel={labels.month}
+        yearPickerLabel={labels.year}
+        emptyLabel={labels.noEventsThisMonth}
+        selectedDate={selectedDate}
+        onSelectDate={setSelectedDate}
+        visibleMonth={visibleMonth}
+        onVisibleMonthChange={(nextMonth) => {
+          setVisibleMonth(nextMonth);
+          setSelectedDate(null);
+        }}
+      />
       <section className="card">
         <h1>{labels.title}</h1>
         <p>{labels.description}</p>
@@ -77,10 +116,10 @@ export function EventsExplorer({ events, locale, labels, categoryLabels }: Props
             ))}
           </div>
         </div>
-        {selectedDay !== null ? (
+        {selectedDateLabel !== null ? (
           <div className="event-day-filter">
-            <strong>{labels.selectedDay}: {selectedDay}.</strong>
-            <button type="button" className="share-btn" onClick={() => setSelectedDay(null)}>{labels.clearDayFilter}</button>
+            <strong>{labels.selectedDay}: {selectedDateLabel}</strong>
+            <button type="button" className="share-btn" onClick={() => setSelectedDate(null)}>{labels.clearDayFilter}</button>
           </div>
         ) : null}
         {filteredEvents.map((event) => (
@@ -111,14 +150,6 @@ export function EventsExplorer({ events, locale, labels, categoryLabels }: Props
           </article>
         ))}
       </section>
-      <EventMiniCalendar
-        events={events}
-        locale={locale}
-        monthLabel={labels.currentMonth}
-        emptyLabel={labels.noEventsThisMonth}
-        selectedDay={selectedDay}
-        onSelectDay={setSelectedDay}
-      />
     </div>
   );
 }

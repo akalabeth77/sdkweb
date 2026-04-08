@@ -7,9 +7,16 @@ type Props = {
   events: EventItem[];
   locale: Locale;
   monthLabel: string;
+  calendarTitle: string;
+  previousMonthLabel: string;
+  nextMonthLabel: string;
+  monthPickerLabel: string;
+  yearPickerLabel: string;
   emptyLabel: string;
-  selectedDay?: number | null;
-  onSelectDay?: (day: number | null) => void;
+  selectedDate?: string | null;
+  onSelectDate?: (date: string | null) => void;
+  visibleMonth: Date;
+  onVisibleMonthChange: (month: Date) => void;
 };
 
 function startOfMonth(date: Date) {
@@ -21,9 +28,30 @@ function endOfMonth(date: Date) {
 }
 
 export function EventMiniCalendar({ events, locale, monthLabel, emptyLabel, selectedDay, onSelectDay }: Props) {
-  const now = new Date();
-  const monthStart = startOfMonth(now);
-  const monthEnd = endOfMonth(now);
+function toDateKey(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+export function EventMiniCalendar({
+  events,
+  locale,
+  monthLabel,
+  calendarTitle,
+  previousMonthLabel,
+  nextMonthLabel,
+  monthPickerLabel,
+  yearPickerLabel,
+  emptyLabel,
+  selectedDate,
+  onSelectDate,
+  visibleMonth,
+  onVisibleMonthChange,
+}: Props) {
+  const monthStart = startOfMonth(visibleMonth);
+  const monthEnd = endOfMonth(visibleMonth);
   const firstWeekday = (monthStart.getDay() + 6) % 7;
   const totalDays = monthEnd.getDate();
   const cells = Array.from({ length: firstWeekday + totalDays }, (_, index) => {
@@ -38,6 +66,16 @@ export function EventMiniCalendar({ events, locale, monthLabel, emptyLabel, sele
     const eventDate = new Date(event.start);
     return eventDate >= monthStart && eventDate <= monthEnd;
   });
+
+  const yearCandidates = new Set<number>([visibleMonth.getFullYear() - 1, visibleMonth.getFullYear(), visibleMonth.getFullYear() + 1]);
+  for (const event of events) {
+    yearCandidates.add(new Date(event.start).getFullYear());
+  }
+  const yearOptions = Array.from(yearCandidates).sort((a, b) => a - b);
+  const monthOptions = Array.from({ length: 12 }, (_, month) => ({
+    value: month,
+    label: new Date(2000, month, 1).toLocaleDateString(locale === 'sk' ? 'sk-SK' : 'en-US', { month: 'long' }),
+  }));
 
   const eventsByDay = new Map<number, EventItem[]>();
   for (const event of monthEvents) {
@@ -55,8 +93,48 @@ export function EventMiniCalendar({ events, locale, monthLabel, emptyLabel, sele
   return (
     <section className="calendar-card card">
       <div className="calendar-header">
-        <h2>{monthLabel}</h2>
-        <div className="small">{now.toLocaleDateString(locale === 'sk' ? 'sk-SK' : 'en-US', { month: 'long', year: 'numeric' })}</div>
+        <h2>{calendarTitle}</h2>
+        <div className="small">{visibleMonth.toLocaleDateString(locale === 'sk' ? 'sk-SK' : 'en-US', { month: 'long', year: 'numeric' })}</div>
+      </div>
+      <div className="calendar-controls">
+        <button
+          type="button"
+          className="filter-chip"
+          onClick={() => onVisibleMonthChange(new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() - 1, 1))}
+        >
+          {previousMonthLabel}
+        </button>
+        <button
+          type="button"
+          className="filter-chip"
+          onClick={() => onVisibleMonthChange(new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + 1, 1))}
+        >
+          {nextMonthLabel}
+        </button>
+      </div>
+      <div className="calendar-controls calendar-select-row">
+        <label className="small">
+          {monthPickerLabel}
+          <select
+            value={visibleMonth.getMonth()}
+            onChange={(event) => onVisibleMonthChange(new Date(visibleMonth.getFullYear(), Number(event.target.value), 1))}
+          >
+            {monthOptions.map((month) => (
+              <option key={month.value} value={month.value}>{month.label}</option>
+            ))}
+          </select>
+        </label>
+        <label className="small">
+          {yearPickerLabel}
+          <select
+            value={visibleMonth.getFullYear()}
+            onChange={(event) => onVisibleMonthChange(new Date(Number(event.target.value), visibleMonth.getMonth(), 1))}
+          >
+            {yearOptions.map((year) => (
+              <option key={year} value={year}>{year}</option>
+            ))}
+          </select>
+        </label>
       </div>
       <div className="calendar-grid calendar-weekdays">
         {weekdayLabels.map((label) => (
@@ -70,13 +148,14 @@ export function EventMiniCalendar({ events, locale, monthLabel, emptyLabel, sele
           }
 
           const dayEvents = eventsByDay.get(day) ?? [];
+          const dateKey = toDateKey(new Date(visibleMonth.getFullYear(), visibleMonth.getMonth(), day));
 
           return (
             <button
               key={day}
               type="button"
-              className={`calendar-day ${selectedDay === day ? 'calendar-day-selected' : ''}`}
-              onClick={() => onSelectDay?.(selectedDay === day ? null : day)}
+              className={`calendar-day ${selectedDate === dateKey ? 'calendar-day-selected' : ''}`}
+              onClick={() => onSelectDate?.(selectedDate === dateKey ? null : dateKey)}
             >
               <div className="calendar-day-number">{day}</div>
               <div className="calendar-dots">
@@ -94,6 +173,7 @@ export function EventMiniCalendar({ events, locale, monthLabel, emptyLabel, sele
         })}
       </div>
       <div className="calendar-legend">
+        <span className="small" style={{ width: '100%' }}>{monthLabel}</span>
         {legendCategories.map((category) => (
           <div key={category} className="calendar-legend-item">
             <span className="calendar-dot" style={{ backgroundColor: getEventCategoryColor(category) }} />
