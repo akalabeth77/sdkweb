@@ -15,6 +15,7 @@ export function Navigation() {
     <nav className="nav">
       <strong>{t.brand}</strong>
       <Link href="/">{t.nav.home}</Link>
+      <Link href="/about">{t.nav.about}</Link>
       <Link href="/events">{t.nav.events}</Link>
       <Link href="/gallery">{t.nav.gallery}</Link>
       <Link href="/articles">{t.nav.articles}</Link>
