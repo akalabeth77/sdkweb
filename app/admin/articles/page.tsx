@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { Article } from '@/types';
 import { useLanguage } from '@/components/language-context';
 import { getStatusLabel, toDateLocale } from '@/lib/i18n';
@@ -23,21 +23,30 @@ function initialEditorValue(value: string): string {
 export default function AdminArticlesPage() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [message, setMessage] = useState('');
+  const [loadError, setLoadError] = useState('');
   const [createTitle, setCreateTitle] = useState('');
   const [createContent, setCreateContent] = useState('<p></p>');
   const [createStatus, setCreateStatus] = useState<'draft' | 'published'>('draft');
   const { locale, t } = useLanguage();
 
-  async function loadArticles() {
+  const loadArticles = useCallback(async () => {
     const response = await fetch('/api/admin/articles', { cache: 'no-store' });
-    if (!response.ok) return;
+
+    if (!response.ok) {
+      const payload = (await response.json().catch(() => ({ error: t.admin.articleLoadError }))) as { error?: string };
+      setLoadError(payload.error ?? t.admin.articleLoadError);
+      setArticles([]);
+      return;
+    }
+
     const payload = (await response.json()) as Article[];
     setArticles(payload);
-  }
+    setLoadError('');
+  }, [t.admin.articleLoadError]);
 
   useEffect(() => {
     void loadArticles();
-  }, []);
+  }, [loadArticles]);
 
   async function createArticle(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -115,18 +124,23 @@ export default function AdminArticlesPage() {
       </form>
 
       {message ? <p className="small">{message}</p> : null}
+      {loadError ? <p className="small">{loadError}</p> : null}
 
       <h2 style={{ marginTop: '1.5rem' }}>{t.admin.existingArticles}</h2>
-      <div className="grid" style={{ gap: '1rem' }}>
-        {articles.map((article) => (
-          <EditableArticleCard
-            key={article.id}
-            article={article}
-            onSave={updateExisting}
-            onDelete={deleteExisting}
-          />
-        ))}
-      </div>
+      {articles.length === 0 ? (
+        <p className="small">{t.admin.noArticlesFound}</p>
+      ) : (
+        <div className="grid" style={{ gap: '1rem' }}>
+          {articles.map((article) => (
+            <EditableArticleCard
+              key={article.id}
+              article={article}
+              onSave={updateExisting}
+              onDelete={deleteExisting}
+            />
+          ))}
+        </div>
+      )}
     </section>
   );
 }

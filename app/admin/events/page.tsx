@@ -1,6 +1,6 @@
 'use client';
 
-import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
+import { ChangeEvent, FormEvent, useCallback, useEffect, useState } from 'react';
 import { EventItem } from '@/types';
 import { useLanguage } from '@/components/language-context';
 import { getSourceLabel, toDateLocale } from '@/lib/i18n';
@@ -30,11 +30,13 @@ function toDatetimeLocal(iso: string): string {
 
 export default function AdminEventsPage() {
   const [events, setEvents] = useState<EventItem[]>([]);
+  const [externalEvents, setExternalEvents] = useState<EventItem[]>([]);
   const [message, setMessage] = useState('');
+  const [loadError, setLoadError] = useState('');
   const [repeatEnabled, setRepeatEnabled] = useState(false);
   const [repeatUntil, setRepeatUntil] = useState('');
   const [repeatDays, setRepeatDays] = useState<RepeatWeekday[]>([]);
-  const { t } = useLanguage();
+  const { locale, t } = useLanguage();
   const categoryOptions: Array<{ value: NonNullable<EventItem['category']>; label: string }> = [
     { value: 'course', label: t.admin.eventCategoryCourse },
     { value: 'dance-party', label: t.admin.eventCategoryDanceParty },
@@ -63,16 +65,26 @@ export default function AdminEventsPage() {
     setRepeatDays((prev: RepeatWeekday[]) => prev.filter((item: RepeatWeekday) => item !== day));
   }
 
-  async function loadEvents() {
+  const loadEvents = useCallback(async () => {
     const response = await fetch('/api/admin/events', { cache: 'no-store' });
-    if (!response.ok) return;
-    const payload = (await response.json()) as EventItem[];
-    setEvents(payload);
-  }
+
+    if (!response.ok) {
+      const payload = (await response.json().catch(() => ({ error: t.admin.eventLoadError }))) as { error?: string };
+      setLoadError(payload.error ?? t.admin.eventLoadError);
+      setEvents([]);
+      setExternalEvents([]);
+      return;
+    }
+
+    const payload = (await response.json()) as { internalEvents: EventItem[]; externalEvents: EventItem[] };
+    setEvents(payload.internalEvents);
+    setExternalEvents(payload.externalEvents);
+    setLoadError('');
+  }, [t.admin.eventLoadError]);
 
   useEffect(() => {
     void loadEvents();
-  }, []);
+  }, [loadEvents]);
 
   async function createEvent(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -223,18 +235,40 @@ export default function AdminEventsPage() {
       </form>
 
       {message ? <p className="small">{message}</p> : null}
+      {loadError ? <p className="small">{loadError}</p> : null}
 
       <h2 style={{ marginTop: '1.5rem' }}>{t.admin.existingEvents}</h2>
-      <div className="grid" style={{ gap: '1rem' }}>
-        {events.map((eventItem) => (
-          <EditableEventCard
-            key={eventItem.id}
-            item={eventItem}
-            onSave={updateEvent}
-            onDelete={deleteEvent}
-          />
-        ))}
-      </div>
+      {events.length === 0 ? (
+        <p className="small">{t.admin.noEventsFound}</p>
+      ) : (
+        <div className="grid" style={{ gap: '1rem' }}>
+          {events.map((eventItem) => (
+            <EditableEventCard
+              key={eventItem.id}
+              item={eventItem}
+              onSave={updateEvent}
+              onDelete={deleteEvent}
+            />
+          ))}
+        </div>
+      )}
+
+      <h2 style={{ marginTop: '1.5rem' }}>{t.admin.externalEvents}</h2>
+      <p className="small">{t.admin.externalEventsDescription}</p>
+      {externalEvents.length === 0 ? (
+        <p className="small">{t.admin.noExternalEventsFound}</p>
+      ) : (
+        <div className="grid" style={{ gap: '1rem' }}>
+          {externalEvents.map((eventItem) => (
+            <article key={eventItem.id} className="card">
+              <strong>{eventItem.title}</strong>
+              <div className="small">{getSourceLabel(locale, eventItem.source)} · {new Date(eventItem.start).toLocaleString(toDateLocale(locale))}</div>
+              {eventItem.location ? <div className="small">{eventItem.location}</div> : null}
+              {eventItem.description ? <p>{eventItem.description}</p> : null}
+            </article>
+          ))}
+        </div>
+      )}
     </section>
   );
 }

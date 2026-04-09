@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+import { fetchFacebookEvents, fetchGoogleCalendarEvents } from '@/lib/social';
 import { getInternalEvents, saveInternalEvent } from '@/lib/store';
 
 const weekdaySchema = z.enum(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']);
@@ -38,8 +39,23 @@ function weekdayToJsDay(weekday: z.infer<typeof weekdaySchema>): number {
 
 export async function GET() {
   try {
-    const events = await getInternalEvents();
-    return NextResponse.json(events);
+    const [internalResult, facebookResult, googleResult] = await Promise.allSettled([
+      getInternalEvents(),
+      fetchFacebookEvents(),
+      fetchGoogleCalendarEvents(),
+    ]);
+
+    if (internalResult.status !== 'fulfilled') {
+      return NextResponse.json({ error: 'Unable to fetch events' }, { status: 500 });
+    }
+
+    const facebookEvents = facebookResult.status === 'fulfilled' ? facebookResult.value : [];
+    const googleEvents = googleResult.status === 'fulfilled' ? googleResult.value : [];
+
+    return NextResponse.json({
+      internalEvents: internalResult.value,
+      externalEvents: [...facebookEvents, ...googleEvents].sort((a, b) => a.start.localeCompare(b.start)),
+    });
   } catch {
     return NextResponse.json({ error: 'Unable to fetch events' }, { status: 500 });
   }
