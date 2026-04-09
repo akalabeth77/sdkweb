@@ -1,12 +1,9 @@
 import { AuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import GoogleProvider from 'next-auth/providers/google';
+import { authSecret } from './auth-secret';
 import { findAppUserByEmail } from './users';
 import { verifyPassword } from './password';
-
-const authSecret =
-  process.env.NEXTAUTH_SECRET ??
-  (process.env.NODE_ENV === 'development' ? 'local-dev-only-secret' : undefined);
 
 const demoUsers = [
   { id: '1', email: 'admin@swing.local', password: 'admin123', name: 'Admin', role: 'admin' },
