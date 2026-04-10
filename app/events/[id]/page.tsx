@@ -5,6 +5,8 @@ import { getServerMessages } from '@/lib/i18n-server';
 import { getEventCategoryColor, getEventCategoryLabel, getSourceLabel, toDateLocale } from '@/lib/i18n';
 import { ShareButtons } from '@/components/share-buttons';
 
+export const dynamic = 'force-dynamic';
+
 export default async function EventDetailPage({ params }: { params: { id: string } }) {
   const { locale, t } = getServerMessages();
   const { events } = await fetchPortalData();

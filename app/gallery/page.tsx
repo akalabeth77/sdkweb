@@ -9,11 +9,27 @@ export default async function GalleryPage() {
   const { locale, t } = getServerMessages();
   const { media } = await fetchPortalData();
 
+  const items = media.length > 0
+    ? media.map((item) => ({
+      ...item,
+      imageUrl: '/swing-dance-kosice-logo.jpg',
+      caption: item.caption ?? 'Swing Dance Kosice',
+      source: 'internal' as const,
+    }))
+    : [
+      {
+        id: 'logo-only',
+        imageUrl: '/swing-dance-kosice-logo.jpg',
+        caption: 'Swing Dance Kosice',
+        source: 'internal' as const,
+      },
+    ];
+
   return (
     <section className="card">
       <h1>{t.gallery.title}</h1>
       <div className="grid grid-2">
-        {media.map((item) => (
+        {items.map((item) => (
           <figure key={item.id}>
             <Image
               src={item.imageUrl}

@@ -5,6 +5,8 @@ import { getStatusLabel, toDateLocale } from '@/lib/i18n';
 import { normalizeArticleHtml } from '@/lib/article-content';
 import { ShareButtons } from '@/components/share-buttons';
 
+export const dynamic = 'force-dynamic';
+
 export default async function ArticlesPage() {
   const { locale, t } = getServerMessages();
   const articles = await getArticles();
