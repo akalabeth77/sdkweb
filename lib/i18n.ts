@@ -34,6 +34,7 @@ export const messages = {
       draft: 'Draft',
       published: 'Published',
       internal: 'interné',
+      external: 'externé',
       facebook: 'Facebook',
       google: 'Google Calendar',
       instagram: 'Instagram',
@@ -186,6 +187,7 @@ export const messages = {
       eventCategoryFestival: 'Festival',
       eventCategoryConcert: 'Koncert',
       eventCategoryOther: 'Iné',
+      internalEvent: 'Interný event',
       galleryTitle: 'Editor galérie',
       createGalleryItem: 'Pridať obrázok',
       createGalleryAlbum: 'Pridať album',
@@ -223,6 +225,14 @@ export const messages = {
       userDeleteError: 'Nepodarilo sa vymazať používateľa.',
       userRoleUpdated: 'Rola používateľa bola zmenená.',
       userRoleUpdateError: 'Nepodarilo sa zmeniť rolu.',
+      updateUserProfile: 'Uložiť meno a email',
+      userProfileUpdated: 'Profil používateľa bol upravený.',
+      userProfileUpdateError: 'Nepodarilo sa upraviť profil používateľa.',
+      newPassword: 'Nové heslo',
+      resetUserPassword: 'Resetovať heslo',
+      userPasswordReset: 'Heslo používateľa bolo resetované.',
+      userPasswordResetError: 'Nepodarilo sa resetovať heslo používateľa.',
+      userPasswordTooShort: 'Heslo musí mať aspoň 6 znakov.',
       noUsers: 'Žiadni používatelia.',
       userStatus: 'Status',
       statusPending: 'Čaká na schválenie',
@@ -267,6 +277,7 @@ export const messages = {
       draft: 'Draft',
       published: 'Published',
       internal: 'internal',
+      external: 'external',
       facebook: 'Facebook',
       google: 'Google Calendar',
       instagram: 'Instagram',
@@ -419,6 +430,7 @@ export const messages = {
       eventCategoryFestival: 'Festival',
       eventCategoryConcert: 'Concert',
       eventCategoryOther: 'Other',
+      internalEvent: 'Internal event',
       galleryTitle: 'Gallery editor',
       createGalleryItem: 'Add image',
       createGalleryAlbum: 'Add album',
@@ -456,6 +468,14 @@ export const messages = {
       userDeleteError: 'Failed to delete user.',
       userRoleUpdated: 'User role was updated.',
       userRoleUpdateError: 'Failed to update user role.',
+      updateUserProfile: 'Save name and email',
+      userProfileUpdated: 'User profile was updated.',
+      userProfileUpdateError: 'Failed to update user profile.',
+      newPassword: 'New password',
+      resetUserPassword: 'Reset password',
+      userPasswordReset: 'User password was reset.',
+      userPasswordResetError: 'Failed to reset user password.',
+      userPasswordTooShort: 'Password must have at least 6 characters.',
       noUsers: 'No users found.',
       userStatus: 'Status',
       statusPending: 'Pending approval',
@@ -488,6 +508,7 @@ export function toDateLocale(locale: Locale): string {
 export function getSourceLabel(locale: Locale, source: string): string {
   const common = getMessages(locale).common;
   if (source === 'internal') return common.internal;
+  if (source === 'external') return common.external;
   if (source === 'facebook') return common.facebook;
   if (source === 'google') return common.google;
   if (source === 'instagram') return common.instagram;

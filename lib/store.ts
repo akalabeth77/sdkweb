@@ -65,6 +65,11 @@ function mapEventCategory(category: string | null | undefined): EventCategory {
   return 'other';
 }
 
+function mapEventSource(source: string | null | undefined): EventItem['source'] {
+  if (source === 'external') return 'external';
+  return 'internal';
+}
+
 export async function getArticles(): Promise<Article[]> {
   if (!process.env.DATABASE_URL) {
     return getSeedArticles();
@@ -159,7 +164,7 @@ export async function getInternalEvents(): Promise<EventItem[]> {
       end: row.end?.toISOString(),
       location: row.location ?? undefined,
       recurrenceGroupId: row.recurrenceGroupId ?? undefined,
-      source: 'internal',
+      source: mapEventSource(row.source),
     }));
   } catch (error) {
     if (getPrismaErrorCode(error) === 'P2022') {
@@ -193,7 +198,9 @@ export async function getInternalEvents(): Promise<EventItem[]> {
   }
 }
 
-export async function saveInternalEvent(event: Omit<EventItem, 'source'>): Promise<void> {
+export async function saveInternalEvent(
+  event: Omit<EventItem, 'source'> & { source?: 'internal' | 'external' }
+): Promise<void> {
   if (!process.env.DATABASE_URL) {
     throw new Error('DATABASE_URL is not configured.');
   }
@@ -209,7 +216,7 @@ export async function saveInternalEvent(event: Omit<EventItem, 'source'>): Promi
         end: event.end ? new Date(event.end) : null,
         location: event.location,
         recurrenceGroupId: event.recurrenceGroupId,
-        source: 'internal',
+        source: event.source ?? 'internal',
       },
     });
   } catch (error) {
@@ -221,7 +228,10 @@ export async function saveInternalEvent(event: Omit<EventItem, 'source'>): Promi
   }
 }
 
-export async function updateInternalEvent(id: string, event: Omit<EventItem, 'id' | 'source'>): Promise<void> {
+export async function updateInternalEvent(
+  id: string,
+  event: Omit<EventItem, 'id' | 'source'> & { source?: 'internal' | 'external' }
+): Promise<void> {
   if (!process.env.DATABASE_URL) {
     throw new Error('DATABASE_URL is not configured.');
   }
@@ -236,6 +246,7 @@ export async function updateInternalEvent(id: string, event: Omit<EventItem, 'id
         start: new Date(event.start),
         end: event.end ? new Date(event.end) : null,
         location: event.location,
+        source: event.source ?? 'internal',
       },
     });
   } catch (error) {

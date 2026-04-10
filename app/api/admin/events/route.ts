@@ -13,6 +13,7 @@ const schema = z.object({
   start: z.string().min(1),
   end: z.string().optional().or(z.literal('')),
   location: z.string().optional().or(z.literal('')),
+  isInternal: z.boolean().optional().default(true),
   repeat: z.boolean().optional().default(false),
   repeatUntil: z.string().optional().or(z.literal('')),
   repeatWeekdays: z.array(weekdaySchema).optional(),
@@ -97,6 +98,7 @@ export async function POST(request: Request) {
         start: startIso,
         end: endIso,
         location: parsed.data.location || undefined,
+        source: parsed.data.isInternal ? 'internal' : 'external',
       });
 
       return NextResponse.json({ ok: true });
@@ -155,6 +157,7 @@ export async function POST(request: Request) {
           start: occurrence.start.toISOString(),
           end: occurrence.end?.toISOString(),
           location: parsed.data.location || undefined,
+          source: parsed.data.isInternal ? 'internal' : 'external',
           recurrenceGroupId,
         })
       )

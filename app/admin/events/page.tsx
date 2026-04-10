@@ -14,6 +14,7 @@ type EventForm = {
   start: string;
   end?: string;
   location?: string;
+  isInternal?: boolean;
   applyToSeries?: boolean;
 };
 
@@ -34,6 +35,7 @@ export default function AdminEventsPage() {
   const [message, setMessage] = useState('');
   const [loadError, setLoadError] = useState('');
   const [repeatEnabled, setRepeatEnabled] = useState(false);
+  const [newEventInternal, setNewEventInternal] = useState(true);
   const [repeatUntil, setRepeatUntil] = useState('');
   const [repeatDays, setRepeatDays] = useState<RepeatWeekday[]>([]);
   const { locale, t } = useLanguage();
@@ -113,6 +115,7 @@ export default function AdminEventsPage() {
         start,
         end,
         location: formData.get('location'),
+        isInternal: newEventInternal,
         repeat: repeatEnabled,
         repeatUntil: repeatEnabled ? repeatUntil : '',
         repeatWeekdays: repeatEnabled ? repeatDays : [],
@@ -128,6 +131,7 @@ export default function AdminEventsPage() {
       }
       event.currentTarget.reset();
       setRepeatEnabled(false);
+      setNewEventInternal(true);
       setRepeatUntil('');
       setRepeatDays([]);
       await loadEvents();
@@ -201,6 +205,15 @@ export default function AdminEventsPage() {
         <label>{t.admin.eventStart}<input name="start" type="datetime-local" required /></label>
         <label>{t.admin.eventEnd}<input name="end" type="datetime-local" /></label>
         <label>{t.admin.eventLocation}<input name="location" /></label>
+        <label>
+          <input
+            type="checkbox"
+            checked={newEventInternal}
+            onChange={(event: ChangeEvent<HTMLInputElement>) => setNewEventInternal(event.target.checked)}
+          />
+          {' '}
+          {t.admin.internalEvent}
+        </label>
         <label>
           <input
             type="checkbox"
@@ -288,6 +301,7 @@ function EditableEventCard({
   const [start, setStart] = useState(toDatetimeLocal(item.start));
   const [end, setEnd] = useState(item.end ? toDatetimeLocal(item.end) : '');
   const [location, setLocation] = useState(item.location ?? '');
+  const [isInternal, setIsInternal] = useState(item.source === 'internal');
   const [applyToSeries, setApplyToSeries] = useState(false);
   const { locale, t } = useLanguage();
   const categoryOptions: Array<{ value: NonNullable<EventItem['category']>; label: string }> = [
@@ -311,6 +325,7 @@ function EditableEventCard({
           start: new Date(start).toISOString(),
           end: end ? new Date(end).toISOString() : undefined,
           location: location || undefined,
+          isInternal,
           applyToSeries,
         });
       }}
@@ -337,6 +352,15 @@ function EditableEventCard({
       </label>
       <label>{t.admin.eventLocation}
         <input value={location} onChange={(event) => setLocation(event.target.value)} />
+      </label>
+      <label>
+        <input
+          type="checkbox"
+          checked={isInternal}
+          onChange={(event) => setIsInternal(event.target.checked)}
+        />
+        {' '}
+        {t.admin.internalEvent}
       </label>
       {item.recurrenceGroupId ? (
         <label>

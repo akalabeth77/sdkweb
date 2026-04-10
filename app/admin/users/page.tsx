@@ -92,6 +92,44 @@ export default function AdminUsersPage() {
     setMessage(payload.error ?? t.admin.userRoleUpdateError);
   }
 
+  async function handleUpdateProfile(id: string, name: string, email: string) {
+    const response = await fetch(`/api/admin/users/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'updateProfile', name, email }),
+    });
+
+    if (response.ok) {
+      setMessage(t.admin.userProfileUpdated);
+      await loadUsers();
+      return;
+    }
+
+    const payload = (await response.json().catch(() => ({}))) as { error?: string };
+    setMessage(payload.error ?? t.admin.userProfileUpdateError);
+  }
+
+  async function handleResetPassword(id: string, password: string) {
+    if (password.length < 6) {
+      setMessage(t.admin.userPasswordTooShort);
+      return;
+    }
+
+    const response = await fetch(`/api/admin/users/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'resetPassword', password }),
+    });
+
+    if (response.ok) {
+      setMessage(t.admin.userPasswordReset);
+      return;
+    }
+
+    const payload = (await response.json().catch(() => ({}))) as { error?: string };
+    setMessage(payload.error ?? t.admin.userPasswordResetError);
+  }
+
   async function handleDelete(id: string, name: string) {
     if (!confirm(`${t.admin.confirmDeleteUser}\n\n${name}`)) return;
 
@@ -126,56 +164,124 @@ export default function AdminUsersPage() {
       ) : (
         <div className="grid" style={{ gap: '1rem' }}>
           {users.map((user) => (
-            <article key={user.id} className="card">
-              <strong>{user.name}</strong>
-              <div className="small">{user.email}</div>
-              <div className="small">
-                {t.admin.userStatus}: <strong>{statusLabel(user.status, t)}</strong>
-                {' · '}
-                {t.admin.userRole}: <strong>{roleLabel(user.role, t)}</strong>
-              </div>
-              <div className="small">
-                {t.common.registeredAt}: {new Date(user.createdAt).toLocaleString(toDateLocale(locale))}
-              </div>
-
-              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.75rem', alignItems: 'center' }}>
-                {user.status === 'pending' && (
-                  <>
-                    <button type="button" onClick={() => void handleApproval(user.id, 'approve')}>
-                      {t.common.approve}
-                    </button>
-                    <button type="button" onClick={() => void handleApproval(user.id, 'reject')}>
-                      {t.common.reject}
-                    </button>
-                  </>
-                )}
-
-                <label style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
-                  <span className="small">{t.admin.setRole}:</span>
-                  <select
-                    value={user.role}
-                    onChange={(e) => void handleSetRole(user.id, e.target.value)}
-                    style={{ margin: 0 }}
-                  >
-                    {ROLES.map((r) => (
-                      <option key={r} value={r}>{roleLabel(r, t)}</option>
-                    ))}
-                  </select>
-                </label>
-
-                <button
-                  type="button"
-                  style={{ marginLeft: 'auto', background: 'var(--color-danger, #dc2626)' }}
-                  onClick={() => void handleDelete(user.id, user.name)}
-                >
-                  {t.admin.deleteUser}
-                </button>
-              </div>
-            </article>
+            <UserEditorCard
+              key={user.id}
+              user={user}
+              locale={locale}
+              onApprove={handleApproval}
+              onSetRole={handleSetRole}
+              onUpdateProfile={handleUpdateProfile}
+              onResetPassword={handleResetPassword}
+              onDelete={handleDelete}
+            />
           ))}
         </div>
       )}
     </section>
+  );
+}
+
+function UserEditorCard({
+  user,
+  locale,
+  onApprove,
+  onSetRole,
+  onUpdateProfile,
+  onResetPassword,
+  onDelete,
+}: {
+  user: UserRecord;
+  locale: ReturnType<typeof useLanguage>['locale'];
+  onApprove: (id: string, action: 'approve' | 'reject') => Promise<void>;
+  onSetRole: (id: string, role: string) => Promise<void>;
+  onUpdateProfile: (id: string, name: string, email: string) => Promise<void>;
+  onResetPassword: (id: string, password: string) => Promise<void>;
+  onDelete: (id: string, name: string) => Promise<void>;
+}) {
+  const { t } = useLanguage();
+  const [name, setName] = useState(user.name);
+  const [email, setEmail] = useState(user.email);
+  const [password, setPassword] = useState('');
+
+  return (
+    <article className="card">
+      <div className="small">
+        {t.admin.userStatus}: <strong>{statusLabel(user.status, t)}</strong>
+        {' · '}
+        {t.admin.userRole}: <strong>{roleLabel(user.role, t)}</strong>
+      </div>
+      <div className="small">
+        {t.common.registeredAt}: {new Date(user.createdAt).toLocaleString(toDateLocale(locale))}
+      </div>
+
+      <label>
+        {t.auth.name}
+        <input value={name} onChange={(event) => setName(event.target.value)} required />
+      </label>
+      <label>
+        {t.auth.email}
+        <input value={email} onChange={(event) => setEmail(event.target.value)} type="email" required />
+      </label>
+
+      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.5rem', alignItems: 'center' }}>
+        <button type="button" onClick={() => void onUpdateProfile(user.id, name.trim(), email.trim())}>
+          {t.admin.updateUserProfile}
+        </button>
+
+        {user.status === 'pending' && (
+          <>
+            <button type="button" onClick={() => void onApprove(user.id, 'approve')}>
+              {t.common.approve}
+            </button>
+            <button type="button" onClick={() => void onApprove(user.id, 'reject')}>
+              {t.common.reject}
+            </button>
+          </>
+        )}
+
+        <label style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+          <span className="small">{t.admin.setRole}:</span>
+          <select
+            value={user.role}
+            onChange={(e) => void onSetRole(user.id, e.target.value)}
+            style={{ margin: 0 }}
+          >
+            {ROLES.map((r) => (
+              <option key={r} value={r}>{roleLabel(r, t)}</option>
+            ))}
+          </select>
+        </label>
+      </div>
+
+      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.5rem', alignItems: 'center' }}>
+        <label style={{ margin: 0, flex: '1 1 260px' }}>
+          {t.admin.newPassword}
+          <input
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            type="password"
+            minLength={6}
+          />
+        </label>
+        <button
+          type="button"
+          onClick={async () => {
+            await onResetPassword(user.id, password);
+            setPassword('');
+          }}
+        >
+          {t.admin.resetUserPassword}
+        </button>
+
+        <button
+          type="button"
+          style={{ marginLeft: 'auto', background: 'var(--color-danger, #dc2626)' }}
+          onClick={() => void onDelete(user.id, user.name)}
+        >
+          {t.admin.deleteUser}
+        </button>
+      </div>
+    </article>
   );
 }
 

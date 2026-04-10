@@ -20,7 +20,7 @@ export interface EventItem {
   end?: string;
   location?: string;
   recurrenceGroupId?: string;
-  source: 'facebook' | 'google' | 'internal';
+  source: 'facebook' | 'google' | 'internal' | 'external';
 }
 
 export interface MediaItem {

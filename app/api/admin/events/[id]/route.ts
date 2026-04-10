@@ -17,6 +17,7 @@ const schema = z.object({
   start: z.string().min(1),
   end: z.string().optional().or(z.literal('')),
   location: z.string().optional().or(z.literal('')),
+  isInternal: z.boolean().optional().default(true),
   applyToSeries: z.boolean().optional().default(false),
 });
 
@@ -88,6 +89,7 @@ export async function PUT(
               start: adjustedStart,
               end: adjustedEnd,
               location: parsed.data.location || undefined,
+              source: parsed.data.isInternal ? 'internal' : 'external',
             });
           })
         );
@@ -105,6 +107,7 @@ export async function PUT(
       start: startIso,
       end: endIso,
       location: parsed.data.location || undefined,
+      source: parsed.data.isInternal ? 'internal' : 'external',
     });
 
     return NextResponse.json({ ok: true, updatedCount: 1 });

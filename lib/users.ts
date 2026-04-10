@@ -188,6 +188,36 @@ export async function updateUserRole(id: string, role: string): Promise<void> {
   });
 }
 
+export async function updateUserProfile(
+  id: string,
+  data: { name: string; email: string }
+): Promise<void> {
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL is not configured.');
+  }
+
+  await prisma.appUser.update({
+    where: { id },
+    data: {
+      name: data.name,
+      email: data.email,
+    },
+  });
+}
+
+export async function resetUserPassword(id: string, password: string): Promise<void> {
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL is not configured.');
+  }
+
+  await prisma.appUser.update({
+    where: { id },
+    data: {
+      passwordHash: hashPassword(password),
+    },
+  });
+}
+
 export async function deleteUser(id: string): Promise<void> {
   if (!process.env.DATABASE_URL) {
     throw new Error('DATABASE_URL is not configured.');
