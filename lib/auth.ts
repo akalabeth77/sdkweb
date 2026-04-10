@@ -24,23 +24,33 @@ export const authOptions: AuthOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials.password) return null;
 
-        const appUser = await findAppUserByEmail(credentials.email);
-        if (appUser) {
-          if (appUser.status !== 'approved') {
-            throw new Error('AccountNotApproved');
+        // Try database first (if available)
+        try {
+          const appUser = await findAppUserByEmail(credentials.email);
+          if (appUser) {
+            if (appUser.status !== 'approved') {
+              throw new Error('AccountNotApproved');
+            }
+
+            const ok = verifyPassword(credentials.password, appUser.passwordHash);
+            if (!ok) return null;
+
+            return {
+              id: appUser.id,
+              email: appUser.email,
+              name: appUser.name,
+              role: appUser.role
+            };
           }
-
-          const ok = verifyPassword(credentials.password, appUser.passwordHash);
-          if (!ok) return null;
-
-          return {
-            id: appUser.id,
-            email: appUser.email,
-            name: appUser.name,
-            role: appUser.role
-          };
+        } catch (error) {
+          // If error is "AccountNotApproved", re-throw it
+          if (error instanceof Error && error.message === 'AccountNotApproved') {
+            throw error;
+          }
+          // Otherwise, continue to demo users as fallback
         }
 
+        // Fallback to demo users
         const user = demoUsers.find(
           (item) => item.email === credentials.email && item.password === credentials.password
         );
