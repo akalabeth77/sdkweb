@@ -59,7 +59,8 @@ img { max-width:100%; border-radius:10px; }
 .calendar-dot { width:10px; height:10px; border-radius:999px; display:inline-block; }
 .calendar-legend { display:flex; flex-wrap:wrap; gap:.6rem 1rem; margin-top:1rem; }
 .calendar-legend-item { display:flex; align-items:center; gap:.35rem; font-size:.85rem; color:#4b5563; }
-.community-links p { margin: .35rem 0; }
+.community-links-row { display:flex; align-items:center; gap:1rem; flex-wrap:wrap; }
+.community-links-inline { display:flex; align-items:center; gap:1rem; flex-wrap:wrap; }
 .community-links a { color: #1d4ed8; font-weight: 600; text-decoration: none; }
 .community-logo { border-radius: 0; display: block; height: auto; margin: .5rem 0; }
 @media (max-width: 900px) {
