@@ -159,13 +159,13 @@ export default async function HomePage() {
             <h3>Lindy Hop</h3>
             <p>{copy.lindyDesc}</p>
             <p className="small">{copy.level}: beginner / intermediate</p>
-            <Link href="/register" className="share-link share-btn">{copy.signup}</Link>
+            <Link href="/events" className="share-link share-btn">{copy.signup}</Link>
           </article>
           <article className="landing-course-card">
             <h3>Collegiate Shag</h3>
             <p>{copy.shagDesc}</p>
             <p className="small">{copy.level}: beginner / intermediate</p>
-            <Link href="/register" className="share-link share-btn">{copy.signup}</Link>
+            <Link href="/events" className="share-link share-btn">{copy.signup}</Link>
           </article>
         </div>
         <div className="card">
