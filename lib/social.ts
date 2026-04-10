@@ -74,16 +74,33 @@ export async function fetchGoogleCalendarEvents(): Promise<EventItem[]> {
 }
 
 export async function fetchPortalData() {
-  const [fbEvents, igMedia, gEvents, internalEvents, internalMedia, albums] = await Promise.all([
+  const [fbEventsResult, igMediaResult, gEventsResult, internalEventsResult, internalMediaResult, albumsResult] = await Promise.allSettled([
     fetchFacebookEvents(),
     fetchInstagramMedia(),
     fetchGoogleCalendarEvents(),
     getInternalEvents(),
     getInternalMedia(),
-    getGalleryAlbums()
+    getGalleryAlbums(),
   ]);
 
-  const albumMedia = (await Promise.all(albums.map((album) => fetchAlbumMedia(album)))).flat();
+  const fbEvents = fbEventsResult.status === 'fulfilled' ? fbEventsResult.value : [];
+  const igMedia = igMediaResult.status === 'fulfilled' ? igMediaResult.value : [];
+  const gEvents = gEventsResult.status === 'fulfilled' ? gEventsResult.value : [];
+  const internalEvents = internalEventsResult.status === 'fulfilled' ? internalEventsResult.value : [];
+  const internalMedia = internalMediaResult.status === 'fulfilled' ? internalMediaResult.value : [];
+  const albums = albumsResult.status === 'fulfilled' ? albumsResult.value : [];
+
+  const albumMedia = (
+    await Promise.all(
+      albums.map(async (album) => {
+        try {
+          return await fetchAlbumMedia(album);
+        } catch {
+          return [];
+        }
+      })
+    )
+  ).flat();
 
   return {
     events: [...fbEvents, ...gEvents, ...internalEvents, ...fallbackEvents]

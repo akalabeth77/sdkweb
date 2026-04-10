@@ -3,7 +3,7 @@ import { getServerMessages } from '@/lib/i18n-server';
 import { getEventCategoryLabel } from '@/lib/i18n';
 import { EventsExplorer } from '@/components/events-explorer';
 
-export const revalidate = 900;
+export const dynamic = 'force-dynamic';
 
 export default async function EventsPage() {
   const { locale, t } = getServerMessages();

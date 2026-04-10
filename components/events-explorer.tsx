@@ -122,6 +122,9 @@ export function EventsExplorer({ events, locale, labels, categoryLabels }: Props
             <button type="button" className="share-btn" onClick={() => setSelectedDate(null)}>{labels.clearDayFilter}</button>
           </div>
         ) : null}
+        {filteredEvents.length === 0 ? (
+          <p className="small">{labels.noEventsThisMonth}</p>
+        ) : null}
         {filteredEvents.map((event) => (
           <article key={event.id} id={event.id} className="event-card-public">
             <div className="event-meta-row">
