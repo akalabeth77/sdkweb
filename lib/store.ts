@@ -82,10 +82,14 @@ export async function getArticles(): Promise<Article[]> {
     author: string;
     createdAt: Date;
     status: string;
+    views: number;
   }>;
 
   try {
-    rows = await prisma.article.findMany({ orderBy: { createdAt: 'desc' } });
+    const result = await prisma.article.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+    rows = result as typeof rows;
   } catch (error) {
     if (shouldFallbackToSeed(error)) {
       return getSeedArticles();
@@ -105,7 +109,54 @@ export async function getArticles(): Promise<Article[]> {
     author: row.author,
     createdAt: row.createdAt.toISOString(),
     status: mapArticleStatus(row.status),
+    views: row.views,
   }));
+}
+
+export async function getTopArticles(limit: number = 10): Promise<Article[]> {
+  if (!process.env.DATABASE_URL) {
+    return getSeedArticles().slice(0, limit);
+  }
+
+  try {
+    const rows = await prisma.article.findMany({
+      where: { status: 'published' },
+      take: limit,
+    });
+    return rows
+      .map((row) => ({
+        id: row.id,
+        title: row.title,
+        content: row.content,
+        author: row.author,
+        createdAt: row.createdAt.toISOString(),
+        status: mapArticleStatus(row.status),
+        views: (row as any).views || 0,
+      }))
+      .sort((a, b) => (b.views || 0) - (a.views || 0))
+      .slice(0, limit);
+  } catch (error) {
+    if (shouldFallbackToSeed(error)) {
+      return getSeedArticles().slice(0, limit);
+    }
+    throw error;
+  }
+}
+
+export async function incrementArticleViews(id: string): Promise<void> {
+  if (!process.env.DATABASE_URL) {
+    return;
+  }
+
+  try {
+    await (prisma.article.update as any)({
+      where: { id },
+      data: { views: { increment: 1 } },
+    });
+  } catch (error) {
+    // Silently fail for view tracking
+    console.error('Failed to increment article views:', error);
+  }
 }
 
 export async function saveArticle(article: Article): Promise<void> {

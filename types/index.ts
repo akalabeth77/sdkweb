@@ -9,6 +9,7 @@ export interface Article {
   author: string;
   createdAt: string;
   status: 'draft' | 'published';
+  views?: number;
 }
 
 export interface EventItem {

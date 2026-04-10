@@ -5,6 +5,7 @@
     "content": "Toto je ukážkový článok publikovaný v novom portáli.",
     "author": "Admin",
     "createdAt": "2026-03-28T12:00:00.000Z",
-    "status": "published"
+    "status": "published",
+    "views": 0
   }
 ]

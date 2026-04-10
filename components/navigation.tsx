@@ -9,6 +9,7 @@ export function Navigation() {
   const { status, data } = useSession();
   const isAuthenticated = status === 'authenticated';
   const isAdmin = data?.user?.role === 'admin';
+  const userName = data?.user?.name || data?.user?.email;
   const { t } = useLanguage();
 
   return (
@@ -21,6 +22,7 @@ export function Navigation() {
       <Link href="/articles">{t.nav.articles}</Link>
       {isAuthenticated ? (
         <>
+          <span style={{ fontSize: '0.9rem', color: '#666', opacity: 0.8 }}>👤 {userName}</span>
           <Link href="/admin">{t.nav.admin}</Link>
           <Link href="/admin/articles">{t.nav.articleEditor}</Link>
           <Link href="/admin/events">{t.nav.eventEditor}</Link>

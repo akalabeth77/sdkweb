@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getArticles } from '@/lib/store';
+import { getArticles, incrementArticleViews } from '@/lib/store';
 import { getServerMessages } from '@/lib/i18n-server';
 import { getStatusLabel, toDateLocale } from '@/lib/i18n';
 import { normalizeArticleHtml } from '@/lib/article-content';
@@ -16,6 +16,9 @@ export default async function ArticleDetailPage({ params }: { params: { id: stri
   if (!article) {
     notFound();
   }
+
+  // Increment view count
+  await incrementArticleViews(article.id);
 
   return (
     <section className="card">

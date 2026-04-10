@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import Image from 'next/image';
 import { fetchPortalData } from '@/lib/social';
 import { getArticles } from '@/lib/store';
 import { getServerMessages } from '@/lib/i18n-server';
 import { getEventCategoryLabel, getSourceLabel, getStatusLabel, toDateLocale } from '@/lib/i18n';
+import { DailyQuote } from '@/components/daily-quote';
 
 export const metadata: Metadata = {
   title: 'Swing Dance Kosice - kurzy tanca Lindy Hop Kosice',
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 export default async function HomePage() {
   const { locale, t } = getServerMessages();
   const dateLocale = toDateLocale(locale);
-  const [{ events, media }, articles] = await Promise.all([fetchPortalData(), getArticles()]);
+  const [{ events }, articles] = await Promise.all([fetchPortalData(), getArticles()]);
 
   return (
     <div className="grid" style={{ gap: '1.2rem' }}>
@@ -33,6 +33,8 @@ export default async function HomePage() {
           <Link href="/about">{t.home.ctaAbout}</Link>
         </p>
       </section>
+
+      <DailyQuote />
 
       <section className="grid grid-2">
         <div className="card">
@@ -76,24 +78,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="card">
-        <h2>{t.home.galleryPreview}</h2>
-        <div className="grid grid-2">
-          {media.slice(0, 2).map((item) => (
-            <figure key={item.id}>
-              <Image
-                src={item.imageUrl}
-                alt={item.caption ?? t.home.swingPhoto}
-                width={1200}
-                height={800}
-                sizes="(max-width: 768px) 100vw, 50vw"
-                style={{ width: '100%', height: 'auto' }}
-              />
-              <figcaption className="small">{item.caption}{item.albumTitle ? ` · ${item.albumTitle}` : ''}</figcaption>
-            </figure>
-          ))}
-        </div>
-      </section>
     </div>
   );
 }
