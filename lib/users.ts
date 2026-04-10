@@ -3,6 +3,7 @@ import { hashPassword } from './password';
 
 type PrismaErrorLike = {
   code?: string;
+  message?: string;
 };
 
 function isTableMissing(error: unknown): boolean {
@@ -11,6 +12,32 @@ function isTableMissing(error: unknown): boolean {
   }
 
   return (error as PrismaErrorLike).code === 'P2021';
+}
+
+function isPoolExhaustionError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') {
+    return false;
+  }
+
+  const message = (error as PrismaErrorLike).message;
+  if (!message) {
+    return false;
+  }
+
+  return (
+    message.includes('MaxClientsInSessionMode') ||
+    message.includes('max clients reached') ||
+    message.includes('too many clients')
+  );
+}
+
+function isReadFallbackError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') {
+    return false;
+  }
+
+  const code = (error as PrismaErrorLike).code;
+  return code === 'P2021' || code === 'P1001' || isPoolExhaustionError(error);
 }
 
 export type AppUserRecord = {
@@ -57,7 +84,7 @@ export async function findAppUserByEmail(email: string): Promise<AppUserRecord |
       approvedAt: user.approvedAt?.toISOString(),
     };
   } catch (error) {
-    if (isTableMissing(error)) {
+    if (isReadFallbackError(error)) {
       return null;
     }
 
@@ -123,7 +150,7 @@ export async function listPendingUsers(): Promise<AppUserRecord[]> {
       approvedAt: user.approvedAt?.toISOString(),
     }));
   } catch (error) {
-    if (isTableMissing(error)) {
+    if (isReadFallbackError(error)) {
       return [];
     }
 
@@ -169,7 +196,7 @@ export async function listAllUsers(): Promise<AppUserRecord[]> {
       approvedAt: user.approvedAt?.toISOString(),
     }));
   } catch (error) {
-    if (isTableMissing(error)) {
+    if (isReadFallbackError(error)) {
       return [];
     }
 

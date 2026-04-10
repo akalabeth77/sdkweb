@@ -45,7 +45,8 @@ export default function AdminUsersPage() {
     }
 
     if (!response.ok) {
-      setMessage(t.admin.loadUsersError);
+      const payload = (await response.json().catch(() => ({}))) as { error?: string };
+      setMessage(payload.error ?? t.admin.loadUsersError);
       return;
     }
 

@@ -10,7 +10,8 @@ export async function GET() {
   try {
     const users = await listAllUsers();
     return NextResponse.json(users);
-  } catch {
-    return NextResponse.json({ error: 'Unable to fetch users' }, { status: 500 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unable to fetch users';
+    return NextResponse.json({ error: message }, { status: 503 });
   }
 }

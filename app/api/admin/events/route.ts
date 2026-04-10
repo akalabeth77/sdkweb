@@ -45,16 +45,12 @@ export async function GET() {
       fetchFacebookEvents(),
       fetchGoogleCalendarEvents(),
     ]);
-
-    if (internalResult.status !== 'fulfilled') {
-      return NextResponse.json({ error: 'Unable to fetch events' }, { status: 500 });
-    }
-
+    const internalEvents = internalResult.status === 'fulfilled' ? internalResult.value : [];
     const facebookEvents = facebookResult.status === 'fulfilled' ? facebookResult.value : [];
     const googleEvents = googleResult.status === 'fulfilled' ? googleResult.value : [];
 
     return NextResponse.json({
-      internalEvents: internalResult.value,
+      internalEvents,
       externalEvents: [...facebookEvents, ...googleEvents].sort((a, b) => a.start.localeCompare(b.start)),
     });
   } catch {
