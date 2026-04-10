@@ -5,12 +5,6 @@ import { authSecret } from './auth-secret';
 import { findAppUserByEmail } from './users';
 import { verifyPassword } from './password';
 
-const demoUsers = [
-  { id: '1', email: 'admin@swing.local', password: 'admin123', name: 'Admin', role: 'admin' },
-  { id: '2', email: 'editor@swing.local', password: 'editor123', name: 'Editor', role: 'editor' },
-  { id: '3', email: 'member@swing.local', password: 'member123', name: 'Member', role: 'member' }
-] as const;
-
 export const authOptions: AuthOptions = {
   secret: authSecret,
   session: { strategy: 'jwt' },
@@ -47,22 +41,9 @@ export const authOptions: AuthOptions = {
           if (error instanceof Error && error.message === 'AccountNotApproved') {
             throw error;
           }
-          // Otherwise, continue to demo users as fallback
         }
 
-        // Fallback to demo users
-        const user = demoUsers.find(
-          (item) => item.email === credentials.email && item.password === credentials.password
-        );
-
-        if (!user) return null;
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role
-        };
+        return null;
       }
     }),
     ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET

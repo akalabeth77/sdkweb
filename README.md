@@ -3,7 +3,7 @@
 Tento repozitár obsahuje funkčný MVP portál pre swing komunitu podľa pôvodnej špecifikácie:
 - verejné stránky (domov, eventy, galéria, články),
 - prepojenie na Facebook/Instagram/Google API (cez env premenné),
-- prihlásenie (NextAuth + demo credentials + voliteľný Google OAuth),
+- prihlásenie (NextAuth + voliteľný Google OAuth),
 - admin editor článkov s draft/published workflow,
 - API endpoint pre refresh externých dát.
 
@@ -31,11 +31,6 @@ Tento repozitár obsahuje funkčný MVP portál pre swing komunitu podľa pôvod
 npm install
 npm run dev
 ```
-
-## Demo prihlásenie
-- `admin@swing.local` / `admin123`
-- `editor@swing.local` / `editor123`
-- `member@swing.local` / `member123`
 
 ## Environment variables (.env.local)
 ```bash

@@ -45,12 +45,11 @@ export default function LoginPage() {
     <section className="card" style={{ maxWidth: 420 }}>
       <h1>{t.auth.loginTitle}</h1>
       <form onSubmit={onSubmit}>
-        <label>{t.auth.email}<input name="email" type="email" required defaultValue="admin@swing.local" /></label>
-        <label>{t.auth.password}<input name="password" type="password" required defaultValue="admin123" /></label>
+        <label>{t.auth.email}<input name="email" type="email" required /></label>
+        <label>{t.auth.password}<input name="password" type="password" required /></label>
         <button type="submit">{t.auth.loginButton}</button>
       </form>
       <p className="small">{t.auth.noAccount} <Link href="/register">{t.auth.registerLink}</Link></p>
-      <p className="small">{t.auth.demoAccounts}</p>
       {error ? <p style={{ color: '#b91c1c' }}>{error}</p> : null}
     </section>
   );

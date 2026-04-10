@@ -124,7 +124,6 @@ export const messages = {
       registerExists: 'Tento email už je zaregistrovaný.',
       registerUnavailable: 'Registrácia momentálne nie je dostupná.',
       registerFailed: 'Registrácia zlyhala.',
-      demoAccounts: 'Demo účty: admin/editor/member @swing.local (heslá: admin123/editor123/member123).',
     },
     footer: {
       contactTitle: 'Kontakt',
@@ -372,7 +371,6 @@ export const messages = {
       registerExists: 'This email is already registered.',
       registerUnavailable: 'Registration is currently unavailable.',
       registerFailed: 'Registration failed.',
-      demoAccounts: 'Demo accounts: admin/editor/member @swing.local (passwords: admin123/editor123/member123).',
     },
     footer: {
       contactTitle: 'Contact',
