@@ -147,3 +147,51 @@ export async function updateUserApproval(
         : { status: 'rejected', approvedAt: null },
   });
 }
+
+export async function listAllUsers(): Promise<AppUserRecord[]> {
+  if (!process.env.DATABASE_URL) {
+    return [];
+  }
+
+  try {
+    const users: AppUserRow[] = await prisma.appUser.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return users.map((user) => ({
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      passwordHash: user.passwordHash,
+      role: user.role,
+      status: user.status,
+      createdAt: user.createdAt.toISOString(),
+      approvedAt: user.approvedAt?.toISOString(),
+    }));
+  } catch (error) {
+    if (isTableMissing(error)) {
+      return [];
+    }
+
+    throw error;
+  }
+}
+
+export async function updateUserRole(id: string, role: string): Promise<void> {
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL is not configured.');
+  }
+
+  await prisma.appUser.update({
+    where: { id },
+    data: { role },
+  });
+}
+
+export async function deleteUser(id: string): Promise<void> {
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL is not configured.');
+  }
+
+  await prisma.appUser.delete({ where: { id } });
+}

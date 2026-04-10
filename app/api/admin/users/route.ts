@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { listPendingUsers } from '@/lib/users';
+import { listAllUsers } from '@/lib/users';
 import { isAdminSession } from '@/lib/admin';
 
 export async function GET() {
@@ -8,7 +8,7 @@ export async function GET() {
   }
 
   try {
-    const users = await listPendingUsers();
+    const users = await listAllUsers();
     return NextResponse.json(users);
   } catch {
     return NextResponse.json({ error: 'Unable to fetch users' }, { status: 500 });
