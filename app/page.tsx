@@ -111,7 +111,7 @@ export default async function HomePage() {
         quotesTitle: 'Swing Dance Quotes',
       };
 
-  const heroImage = media[0]?.imageUrl ?? '/swing-dance-kosice-logo.jpg';
+  const heroImage = '/novy_hero.jpg';
   const communityPhotos = media.slice(0, 3);
   const galleryPhotos = media.slice(0, 6);
 
@@ -246,7 +246,6 @@ export default async function HomePage() {
         <div className="community-links-inline" style={{ marginTop: '1rem' }}>
           <a href="https://www.facebook.com/swingdancekosice" target="_blank" rel="noreferrer">Facebook</a>
           <a href="https://www.instagram.com/swingdancekosice" target="_blank" rel="noreferrer">Instagram</a>
-          <a href="mailto:swingdancekosice@gmail.com">swingdancekosice@gmail.com</a>
         </div>
       </section>
 
