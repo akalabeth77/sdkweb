@@ -5,6 +5,7 @@ body { margin: 0; background: #faf9f8; color: #161616; }
 .nav { display: flex; gap: .8rem; padding: 1rem 1.25rem; border-bottom: 1px solid #e7e7e7; background: white; align-items:center; flex-wrap:wrap; }
 .nav a { text-decoration: none; color: #1d4ed8; font-weight: 600; }
 .nav button { width: auto; margin-top: 0; padding: .55rem .9rem; }
+.site-footer { margin-top: 1.5rem; padding: 1rem 0 2rem; border-top: 1px solid #e5e7eb; background: white; }
 .lang-switcher { display:flex; align-items:center; gap:.4rem; margin-left:auto; }
 .lang-btn { width:auto; margin-top:0; padding:.4rem .7rem; background:#e5e7eb; color:#111827; }
 .lang-btn.active { background:#1d4ed8; color:white; }
@@ -58,6 +59,9 @@ img { max-width:100%; border-radius:10px; }
 .calendar-dot { width:10px; height:10px; border-radius:999px; display:inline-block; }
 .calendar-legend { display:flex; flex-wrap:wrap; gap:.6rem 1rem; margin-top:1rem; }
 .calendar-legend-item { display:flex; align-items:center; gap:.35rem; font-size:.85rem; color:#4b5563; }
+.community-links p { margin: .35rem 0; }
+.community-links a { color: #1d4ed8; font-weight: 600; text-decoration: none; }
+.community-logo { border-radius: 0; display: block; height: auto; margin: .5rem 0; }
 @media (max-width: 900px) {
 	.calendar-card { position:static; }
 }

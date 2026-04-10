@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { getServerMessages } from '@/lib/i18n-server';
+import { CommunityLinks } from '@/components/community-links';
 
 export const metadata: Metadata = {
   title: 'O nas - Swing Dance Kosice',
@@ -7,7 +8,7 @@ export const metadata: Metadata = {
 };
 
 export default function AboutPage() {
-  const { t } = getServerMessages();
+  const { locale, t } = getServerMessages();
 
   return (
     <div className="grid" style={{ gap: '1.2rem' }}>
@@ -41,6 +42,10 @@ export default function AboutPage() {
       <section className="card">
         <h2>{t.about.joinTitle}</h2>
         <p>{t.about.join}</p>
+      </section>
+
+      <section className="card">
+        <CommunityLinks locale={locale} title={t.footer.contactTitle} logoSize={180} />
       </section>
     </div>
   );

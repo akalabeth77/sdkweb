@@ -126,6 +126,11 @@ export const messages = {
       registerFailed: 'Registrácia zlyhala.',
       demoAccounts: 'Demo účty: admin/editor/member @swing.local (heslá: admin123/editor123/member123).',
     },
+    footer: {
+      contactTitle: 'Kontakt',
+      followUs: 'Sledujte nás',
+      email: 'Email',
+    },
     admin: {
       dashboardTitle: 'Admin panel',
       dashboardDescription: 'Správa interného obsahu portálu.',
@@ -368,6 +373,11 @@ export const messages = {
       registerUnavailable: 'Registration is currently unavailable.',
       registerFailed: 'Registration failed.',
       demoAccounts: 'Demo accounts: admin/editor/member @swing.local (passwords: admin123/editor123/member123).',
+    },
+    footer: {
+      contactTitle: 'Contact',
+      followUs: 'Follow us',
+      email: 'Email',
     },
     admin: {
       dashboardTitle: 'Admin panel',
