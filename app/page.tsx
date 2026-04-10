@@ -112,6 +112,7 @@ export default async function HomePage() {
       };
 
   const heroImage = '/novy_hero.jpg';
+  const sharedSectionImage = '/novy_hero2.jpg';
   const communityPhotos = media.slice(0, 3);
   const galleryPhotos = media.slice(0, 6);
 
@@ -189,7 +190,7 @@ export default async function HomePage() {
         <div className="landing-photo-grid">
           {(communityPhotos.length ? communityPhotos : [{ id: 'fallback', imageUrl: '/swing-dance-kosice-logo.jpg', caption: 'Swing Dance Košice' }]).map((item) => (
             <figure key={item.id}>
-              <img src={item.imageUrl} alt={item.caption ?? copy.communityAlt} loading="lazy" />
+              <img src={sharedSectionImage} alt={item.caption ?? copy.communityAlt} loading="lazy" />
               <figcaption className="small">{item.caption ?? copy.communityCaptionFallback}</figcaption>
             </figure>
           ))}
@@ -201,7 +202,7 @@ export default async function HomePage() {
         <div className="landing-gallery-grid">
           {(galleryPhotos.length ? galleryPhotos : [{ id: 'logo', imageUrl: '/swing-dance-kosice-logo.jpg', caption: 'Swing Dance Košice' }]).map((item) => (
             <figure key={item.id}>
-              <img src={item.imageUrl} alt={item.caption ?? copy.galleryAlt} loading="lazy" />
+              <img src={sharedSectionImage} alt={item.caption ?? copy.galleryAlt} loading="lazy" />
               <figcaption className="small">{item.caption ?? copy.galleryCaptionFallback}</figcaption>
             </figure>
           ))}
