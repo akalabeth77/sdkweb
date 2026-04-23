@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server';
+import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { isAuthenticatedSession, getCurrentUserId } from '@/lib/auth-utils';
 
+const prisma = new PrismaClient();
+
 const profileSchema = z.object({
-  avatarUrl: z.string().url().optional(),
+  avatarUrl: z.string().url().optional().or(z.literal('')),
   bio: z.string().max(500).optional(),
   phone: z.string().optional(),
   preferences: z.record(z.any()).optional()
@@ -21,21 +24,30 @@ export async function GET() {
   }
 
   try {
-    // TODO: Implement with Prisma
-    // const profile = await prisma.userProfile.findUnique({
-    //   where: { userId },
-    //   include: { user: { select: { id: true, email: true, name: true, role: true } } }
-    // });
+    const profile = await prisma.userProfile.findUnique({
+      where: { userId },
+      include: {
+        user: {
+          select: { id: true, email: true, name: true, role: true }
+        }
+      }
+    });
 
-    // Mock response for now
-    const profile = {
-      id: userId,
-      user: { id: userId, email: 'user@example.com', name: 'User Name', role: 'member' },
-      avatarUrl: null,
-      bio: null,
-      phone: null,
-      preferences: {}
-    };
+    if (!profile) {
+      // Return empty profile if not created yet
+      return NextResponse.json({
+        data: {
+          user: await prisma.appUser.findUnique({
+            where: { id: userId },
+            select: { id: true, email: true, name: true, role: true }
+          }),
+          avatarUrl: null,
+          bio: null,
+          phone: null,
+          preferences: {}
+        }
+      });
+    }
 
     return NextResponse.json({ data: profile });
   } catch (error) {
@@ -43,6 +55,8 @@ export async function GET() {
       error: 'Failed to fetch profile',
       message: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
+  } finally {
+    await prisma.$disconnect();
   }
 }
 
@@ -68,21 +82,36 @@ export async function PUT(request: Request) {
   }
 
   try {
-    // TODO: Implement with Prisma
-    // const profile = await prisma.userProfile.upsert({
-    //   where: { userId },
-    //   update: parsed.data,
-    //   create: { userId, ...parsed.data },
-    //   include: { user: { select: { id: true, email: true, name: true, role: true } } }
-    // });
+    const data = parsed.data;
+    // Clean empty strings to null for optional URL fields
+    if (data.avatarUrl === '') {
+      data.avatarUrl = undefined;
+    }
+
+    const profile = await prisma.userProfile.upsert({
+      where: { userId },
+      update: data,
+      create: {
+        userId,
+        ...data
+      },
+      include: {
+        user: {
+          select: { id: true, email: true, name: true, role: true }
+        }
+      }
+    });
 
     return NextResponse.json({
-      data: { message: 'Profile updated successfully' }
+      data: profile,
+      message: 'Profile updated successfully'
     });
   } catch (error) {
     return NextResponse.json({
       error: 'Failed to update profile',
       message: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
+  } finally {
+    await prisma.$disconnect();
   }
 }

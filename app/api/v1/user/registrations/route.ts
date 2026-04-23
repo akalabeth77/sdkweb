@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
+import { PrismaClient } from '@prisma/client';
 import { isAuthenticatedSession, getCurrentUserId } from '@/lib/auth-utils';
+
+const prisma = new PrismaClient();
 
 // GET /api/v1/user/registrations - Get user's event registrations
 export async function GET() {
@@ -13,41 +16,23 @@ export async function GET() {
   }
 
   try {
-    // TODO: Implement with Prisma
-    // const registrations = await prisma.eventRegistration.findMany({
-    //   where: { userId },
-    //   include: {
-    //     event: {
-    //       select: {
-    //         id: true,
-    //         title: true,
-    //         description: true,
-    //         start: true,
-    //         end: true,
-    //         location: true,
-    //         category: true
-    //       }
-    //     }
-    //   },
-    //   orderBy: { createdAt: 'desc' }
-    // });
-
-    // Mock response for now
-    const registrations = [
-      {
-        id: 'reg-1',
-        status: 'registered',
-        createdAt: new Date().toISOString(),
+    const registrations = await prisma.eventRegistration.findMany({
+      where: { userId },
+      include: {
         event: {
-          id: 'event-1',
-          title: 'Swing Dance Workshop',
-          description: 'Learn basic swing moves',
-          start: '2024-01-15T18:00:00Z',
-          location: 'Dance Studio',
-          category: 'workshop'
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            start: true,
+            end: true,
+            location: true,
+            category: true
+          }
         }
-      }
-    ];
+      },
+      orderBy: { createdAt: 'desc' }
+    });
 
     return NextResponse.json({ data: registrations });
   } catch (error) {
@@ -55,5 +40,7 @@ export async function GET() {
       error: 'Failed to fetch registrations',
       message: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
+  } finally {
+    await prisma.$disconnect();
   }
 }
