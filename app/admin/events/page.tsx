@@ -282,11 +282,86 @@ export default function AdminEventsPage() {
           ))}
         </div>
       )}
+
+      <h2 style={{ marginTop: '1.5rem' }}>Registrácie na eventy</h2>
+      <EventRegistrationsList />
     </section>
   );
 }
 
-function EditableEventCard({
+function EventRegistrationsList() {
+  const [registrations, setRegistrations] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchRegistrations();
+  }, []);
+
+  const fetchRegistrations = async () => {
+    try {
+      // TODO: Create admin API endpoint for fetching all registrations
+      // const response = await fetch('/api/admin/registrations');
+      // if (response.ok) {
+      //   const data = await response.json();
+      //   setRegistrations(data.data);
+      // }
+
+      // Mock data for now
+      setRegistrations([
+        {
+          id: 'reg-1',
+          user: { name: 'John Doe', email: 'john@example.com' },
+          event: { title: 'Swing Workshop', start: '2024-01-15T18:00:00Z' },
+          status: 'registered',
+          createdAt: new Date().toISOString()
+        }
+      ]);
+    } catch (error) {
+      console.error('Failed to fetch registrations:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return <p className="small">Načítavam registrácie...</p>;
+  }
+
+  if (registrations.length === 0) {
+    return <p className="small">Žiadne registrácie na eventy.</p>;
+  }
+
+  return (
+    <div className="space-y-2">
+      {registrations.map((reg) => (
+        <div key={reg.id} className="border rounded p-3 bg-gray-50">
+          <div className="flex justify-between items-start">
+            <div>
+              <strong>{reg.event.title}</strong>
+              <div className="small">
+                {reg.user.name} ({reg.user.email})
+              </div>
+              <div className="small">
+                {new Date(reg.event.start).toLocaleString('sk-SK')}
+              </div>
+            </div>
+            <span className={`px-2 py-1 rounded text-xs ${
+              reg.status === 'registered' ? 'bg-green-100 text-green-800' :
+              reg.status === 'waiting' ? 'bg-yellow-100 text-yellow-800' :
+              reg.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+              'bg-blue-100 text-blue-800'
+            }`}>
+              {reg.status === 'registered' ? 'Registrovaný' :
+               reg.status === 'waiting' ? 'Čakacia listina' :
+               reg.status === 'cancelled' ? 'Zrušený' :
+               'Zúčastnený'}
+            </span>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
   item,
   onSave,
   onDelete,

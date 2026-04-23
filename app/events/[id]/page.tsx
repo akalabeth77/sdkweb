@@ -4,6 +4,7 @@ import { fetchPortalData } from '@/lib/social';
 import { getServerMessages } from '@/lib/i18n-server';
 import { getEventCategoryColor, getEventCategoryLabel, getSourceLabel, toDateLocale } from '@/lib/i18n';
 import { ShareButtons } from '@/components/share-buttons';
+import { EventRegistrationButton } from '@/components/event-registration-button';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,6 +31,12 @@ export default async function EventDetailPage({ params }: { params: { id: string
         {event.location ? ` · ${event.location}` : ''} · {getSourceLabel(locale, event.source)}
       </div>
       {event.description ? <div className="article-content"><p>{event.description}</p></div> : null}
+
+      {/* Event Registration */}
+      <div className="mt-6">
+        <EventRegistrationButton eventId={event.id} />
+      </div>
+
       <ShareButtons
         title={event.title}
         text={event.description}

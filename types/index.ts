@@ -6,10 +6,61 @@ export interface Article {
   id: string;
   title: string;
   content: string;
+  slug?: string;
+  excerpt?: string;
   author: string;
+  featuredImage?: string;
   createdAt: string;
+  publishedAt?: string;
+  updatedAt?: string;
   status: 'draft' | 'published';
   views?: number;
+  categoryId?: string;
+}
+
+export interface ArticleCategory {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+export interface UserProfile {
+  id: string;
+  userId: string;
+  avatarUrl?: string;
+  bio?: string;
+  phone?: string;
+  preferences?: Record<string, any>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface EventRegistration {
+  id: string;
+  userId: string;
+  eventId: string;
+  status: 'registered' | 'waiting' | 'cancelled' | 'attended';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Notification {
+  id: string;
+  userId: string;
+  title: string;
+  body: string;
+  type: 'info' | 'warning' | 'success' | 'event';
+  isRead: boolean;
+  createdAt: string;
+}
+
+export interface Device {
+  id: string;
+  userId: string;
+  platform: 'ios' | 'android' | 'web';
+  pushToken: string;
+  lastSeenAt: string;
+  createdAt: string;
 }
 
 export interface EventItem {

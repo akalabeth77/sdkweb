@@ -12,12 +12,110 @@ model Article {
   id        String   @id
   title     String
   content   String
+  slug      String?  @unique
+  excerpt   String?
   author    String
+  featuredImage String?
   createdAt DateTime @default(now())
+  publishedAt DateTime?
+  updatedAt DateTime @updatedAt
   status    String   @default("draft")
   views     Int      @default(0)
+  category  ArticleCategory? @relation(fields: [categoryId], references: [id])
+  categoryId String?
 
   @@map("articles")
+}
+
+model ArticleCategory {
+  id    String  @id @default(cuid())
+  name  String  @unique
+  slug  String  @unique
+  articles Article[]
+
+  @@map("article_categories")
+}
+
+model UserProfile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  avatarUrl String?
+  bio       String?
+  phone     String?
+  preferences Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user AppUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_profiles")
+}
+
+model EventRegistration {
+  id        String   @id @default(cuid())
+  userId    String
+  eventId   String
+  status    String   @default("registered") // registered, waiting, cancelled, attended
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user AppUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event InternalEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, eventId])
+  @@map("event_registrations")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  body      String
+  type      String   @default("info") // info, warning, success, event
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user AppUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model Device {
+  id        String   @id @default(cuid())
+  userId    String
+  platform  String   // ios, android, web
+  pushToken String   @unique
+  lastSeenAt DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  user AppUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("devices")
+}
+
+model ExternalSyncJob {
+  id         String   @id @default(cuid())
+  provider   String   // facebook, instagram, google-calendar
+  status     String   @default("pending") // pending, running, completed, failed
+  startedAt  DateTime?
+  finishedAt DateTime?
+  message    String?
+  createdAt  DateTime @default(now())
+
+  @@map("external_sync_jobs")
+}
+
+model ExternalItem {
+  id        String   @id @default(cuid())
+  provider  String   // facebook, instagram, google-calendar
+  externalId String
+  type      String   // event, media, post
+  data      Json     // raw payload or metadata
+  syncedAt  DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  @@unique([provider, externalId, type])
+  @@map("external_items")
 }
 
 model InternalEvent {
@@ -31,6 +129,8 @@ model InternalEvent {
   source    String   @default("internal")
   recurrenceGroupId String?
   createdAt DateTime @default(now())
+
+  registrations EventRegistration[]
 
   @@map("internal_events")
 }
@@ -54,6 +154,11 @@ model AppUser {
   status       String   @default("pending")
   createdAt    DateTime @default(now())
   approvedAt   DateTime?
+
+  profile UserProfile?
+  registrations EventRegistration[]
+  notifications Notification[]
+  devices Device[]
 
   @@map("app_users")
 }

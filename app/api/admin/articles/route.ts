@@ -2,14 +2,23 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getArticles, saveArticle } from '@/lib/store';
 import { extractPlainText, normalizeArticleHtml } from '@/lib/article-content';
+import { isEditorOrAdminSession } from '@/lib/auth-utils';
 
-const schema = z.object({
+const createSchema = z.object({
   title: z.string().min(3),
   content: z.string().min(1),
-  status: z.enum(['draft', 'published'])
+  status: z.enum(['draft', 'published']),
+  slug: z.string().optional(),
+  excerpt: z.string().optional(),
+  featuredImage: z.string().optional(),
+  categoryId: z.string().optional()
 });
 
 export async function GET() {
+  if (!(await isEditorOrAdminSession())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const articles = await getArticles();
     return NextResponse.json(articles);
@@ -19,8 +28,12 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  if (!(await isEditorOrAdminSession())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   const payload = await request.json();
-  const parsed = schema.safeParse(payload);
+  const parsed = createSchema.safeParse(payload);
 
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
@@ -38,8 +51,11 @@ export async function POST(request: Request) {
       title: parsed.data.title,
       content: normalizedContent,
       status: parsed.data.status,
+      slug: parsed.data.slug,
+      excerpt: parsed.data.excerpt,
+      featuredImage: parsed.data.featuredImage,
       createdAt: new Date().toISOString(),
-      author: 'Admin'
+      author: 'Admin' // TODO: Get from session
     });
 
     return NextResponse.json({ ok: true });
