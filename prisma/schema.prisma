@@ -18,7 +18,7 @@ model Article {
   featuredImage String?
   createdAt DateTime @default(now())
   publishedAt DateTime?
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @default(now()) @updatedAt
   status    String   @default("draft")
   views     Int      @default(0)
   category  ArticleCategory? @relation(fields: [categoryId], references: [id])
@@ -44,7 +44,7 @@ model UserProfile {
   phone     String?
   preferences Json?
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @default(now()) @updatedAt
 
   user AppUser @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -57,7 +57,7 @@ model EventRegistration {
   eventId   String
   status    String   @default("registered") // registered, waiting, cancelled, attended
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @default(now()) @updatedAt
 
   user AppUser @relation(fields: [userId], references: [id], onDelete: Cascade)
   event InternalEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
