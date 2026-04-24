@@ -74,7 +74,7 @@ Build script na Verceli automaticky spustí `prisma migrate deploy`, ak sú dost
 Pred buildom aj runtime nastav vo Vercel Project Settings -> Environment Variables hodnoty `DATABASE_URL` a `DIRECT_URL` pre Production aj Preview.
 Pre Supabase používaj:
 - `DATABASE_URL` = transaction pooler URL (port `6543`) pre runtime aplikácie
-- `DIRECT_URL` = direct Postgres URL (port `5432`) pre Prisma migrácie
+- `DIRECT_URL` = direct Postgres URL (port `5432`) pre Prisma migrácie 
 
 Príklad pre serverless runtime (odporúčané parametre):
 ```bash
