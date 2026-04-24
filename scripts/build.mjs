@@ -27,7 +27,15 @@ function runWithResult(command, args, env = process.env) {
   return result;
 }
 
-console.log('Starting build process...');
+// Check environment variables first
+console.log('\n🔍 Checking environment variables...');
+const checkResult = runWithResult('node', ['scripts/check-env.js']);
+if (checkResult.status !== 0) {
+  console.error('\n❌ Environment check failed!');
+  process.exit(checkResult.status ?? 1);
+}
+
+console.log('\n🚀 Starting build process...');
 console.log('VERCEL env:', process.env.VERCEL ? 'true' : 'false');
 console.log('DATABASE_URL set:', process.env.DATABASE_URL ? 'true' : 'false');
 console.log('DIRECT_URL set:', process.env.DIRECT_URL ? 'true' : 'false');
