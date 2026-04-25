@@ -12,7 +12,7 @@ model Article {
   id        String   @id
   title     String
   content   String
-  slug      String?
+  slug      String   @unique
   excerpt   String?
   author    String
   featuredImage String?
