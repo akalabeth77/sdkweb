@@ -2,17 +2,26 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { deleteArticle, updateArticle } from '@/lib/store';
 import { extractPlainText, normalizeArticleHtml } from '@/lib/article-content';
+import { isEditorOrAdminSession } from '@/lib/auth-utils';
 
 const schema = z.object({
   title: z.string().min(3),
   content: z.string().min(1),
-  status: z.enum(['draft', 'published'])
+  status: z.enum(['draft', 'published']),
+  slug: z.string().optional(),
+  excerpt: z.string().optional(),
+  featuredImage: z.string().optional(),
+  categoryId: z.string().optional(),
 });
 
 export async function PUT(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  if (!(await isEditorOrAdminSession())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   const payload = await request.json();
   const parsed = schema.safeParse(payload);
 
@@ -31,6 +40,10 @@ export async function PUT(
       title: parsed.data.title,
       content: normalizedContent,
       status: parsed.data.status,
+      slug: parsed.data.slug,
+      excerpt: parsed.data.excerpt,
+      featuredImage: parsed.data.featuredImage,
+      categoryId: parsed.data.categoryId,
     });
     return NextResponse.json({ ok: true });
   } catch (error) {
@@ -43,6 +56,10 @@ export async function DELETE(
   _request: Request,
   { params }: { params: { id: string } }
 ) {
+  if (!(await isEditorOrAdminSession())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     await deleteArticle(params.id);
     return NextResponse.json({ ok: true });

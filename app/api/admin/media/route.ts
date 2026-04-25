@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getInternalMedia, saveInternalMedia } from '@/lib/store';
+import { isEditorOrAdminSession } from '@/lib/auth-utils';
 
 const schema = z.object({
   imageUrl: z.string().url(),
@@ -8,6 +9,10 @@ const schema = z.object({
 });
 
 export async function GET() {
+  if (!(await isEditorOrAdminSession())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const media = await getInternalMedia();
     return NextResponse.json(media);
@@ -17,6 +22,10 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  if (!(await isEditorOrAdminSession())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   const payload = await request.json();
   const parsed = schema.safeParse(payload);
 

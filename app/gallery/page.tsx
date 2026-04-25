@@ -12,9 +12,7 @@ export default async function GalleryPage() {
   const items = media.length > 0
     ? media.map((item) => ({
       ...item,
-      imageUrl: '/swing-dance-kosice-logo.jpg',
       caption: item.caption ?? 'Swing Dance Kosice',
-      source: 'internal' as const,
     }))
     : [
       {

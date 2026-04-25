@@ -57,14 +57,27 @@ export const authOptions: AuthOptions = {
   ],
   callbacks: {
     async jwt({ token, user }) {
-      if (user && 'role' in user) {
-        token.role = user.role as string;
+      if (user) {
+        if ('id' in user) {
+          token.id = user.id as string;
+        }
+        if ('role' in user) {
+          token.role = user.role as string;
+        }
+      }
+      if (!token.id && user?.email) {
+        const appUser = await findAppUserByEmail(user.email);
+        token.id = appUser?.id;
+        if (!token.role && appUser?.role) {
+          token.role = appUser.role;
+        }
       }
       if (!token.role) token.role = 'member';
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
+        session.user.id = token.id as string | undefined;
         session.user.role = (token.role as string) ?? 'member';
       }
       return session;

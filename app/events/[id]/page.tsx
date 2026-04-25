@@ -32,9 +32,8 @@ export default async function EventDetailPage({ params }: { params: { id: string
       </div>
       {event.description ? <div className="article-content"><p>{event.description}</p></div> : null}
 
-      {/* Event Registration */}
       <div className="mt-6">
-        <EventRegistrationButton eventId={event.id} />
+        <EventRegistrationButton eventId={event.id} isAvailable={event.source === 'internal'} />
       </div>
 
       <ShareButtons

@@ -1,10 +1,7 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import { isAuthenticatedSession, getCurrentUserId } from '@/lib/auth-utils';
+import { getCurrentUserId, isAuthenticatedSession } from '@/lib/auth-utils';
+import { listUserEventRegistrations } from '@/lib/store';
 
-const prisma = new PrismaClient();
-
-// GET /api/v1/user/registrations - Get user's event registrations
 export async function GET() {
   if (!(await isAuthenticatedSession())) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -16,31 +13,11 @@ export async function GET() {
   }
 
   try {
-    const registrations = await prisma.eventRegistration.findMany({
-      where: { userId },
-      include: {
-        event: {
-          select: {
-            id: true,
-            title: true,
-            description: true,
-            start: true,
-            end: true,
-            location: true,
-            category: true
-          }
-        }
-      },
-      orderBy: { createdAt: 'desc' }
-    });
-
+    const registrations = await listUserEventRegistrations(userId);
     return NextResponse.json({ data: registrations });
   } catch (error) {
     return NextResponse.json({
-      error: 'Failed to fetch registrations',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Failed to fetch registrations',
     }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
   }
 }

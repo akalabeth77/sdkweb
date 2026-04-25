@@ -7,6 +7,7 @@ import {
   getInternalEventRecurrenceGroupId,
   updateInternalEvent,
 } from '@/lib/store';
+import { isEditorOrAdminSession } from '@/lib/auth-utils';
 
 const categorySchema = z.enum(['course', 'dance-party', 'workshop', 'festival', 'concert', 'other']);
 
@@ -48,6 +49,10 @@ export async function PUT(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  if (!(await isEditorOrAdminSession())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   const payload = await request.json();
   const parsed = schema.safeParse(payload);
 
@@ -121,6 +126,10 @@ export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  if (!(await isEditorOrAdminSession())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const scope = new URL(request.url).searchParams.get('scope');
     if (scope === 'series') {

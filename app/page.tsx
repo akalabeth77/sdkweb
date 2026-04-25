@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
 import { fetchPortalData } from '@/lib/social';
 import { getServerMessages } from '@/lib/i18n-server';
@@ -25,46 +26,44 @@ export default async function HomePage() {
 
   const copy = isSk
     ? {
-        heroTitle: 'Objav swing v Košiciach',
-        heroSubtitle: 'Tanec, komunita a radosť z pohybu',
-        ctaStart: 'Začať tancovať',
-        ctaParty: 'Najbližšia tančiareň',
-        startTitle: 'Ako začať',
-        step1Title: '1. Prihlás sa na kurz',
-        step1Text: 'Vyber si termín, ktorý ti sedí, a rezervuj si miesto medzi začiatočníkmi.',
-        step2Title: '2. Príď na prvú lekciu',
-        step2Text: 'Na hodine ťa prevedieme základmi, rytmom a prvými figurami v pohodovej atmosfére.',
-        step3Title: '3. Príď na tančiareň',
-        step3Text: 'Trénuj v praxi, spoznaj komunitu a uži si večer plný hudby.',
-        noPartner: 'Nepotrebuješ partnera',
-        beginners: 'Začiatočníci vítaní',
+        heroTitle: 'Objav swing v Kosiciach',
+        heroSubtitle: 'Tanec, komunita a radost z pohybu',
+        ctaStart: 'Zacat tancovat',
+        ctaParty: 'Najblizsia tanciaren',
+        startTitle: 'Ako zacat',
+        step1Title: '1. Prihlas sa na kurz',
+        step1Text: 'Vyber si termin, ktory ti sedi, a rezervuj si miesto medzi zaciatocnikmi.',
+        step2Title: '2. Prid na prvu lekciu',
+        step2Text: 'Na hodine ta prevedieme zakladmi, rytmom a prvymi figurami v pohodovej atmosfere.',
+        step3Title: '3. Prid na tanciaren',
+        step3Text: 'Trenuj v praxi, spoznaj komunitu a uzij si vecer plny hudby.',
+        noPartner: 'Nepotrebujes partnera',
+        beginners: 'Zaciatocnici vitani',
         courses: 'Kurzy',
-        level: 'Úroveň',
-        signup: 'Prihlásiť sa',
-        lindyDesc: 'Energetický partnerský tanec z éry swingu. Ideálny na social dancing aj prvé festivaly.',
-        shagDesc: 'Rýchly, hravý a rytmický tanec pre tých, ktorí milujú tempo a zábavu.',
-        eventsTitle: 'Najbližšie podujatia / Social dancing',
-        joinEvent: 'Zúčastniť sa',
-        noEvents: 'Nové podujatia čoskoro pribudnú.',
+        level: 'Uroven',
+        signup: 'Prihlasit sa',
+        lindyDesc: 'Energeticky partnersky tanec z ery swingu. Idealny na social dancing aj prve festivaly.',
+        shagDesc: 'Rychly, hravy a rytmicky tanec pre tych, ktori miluju tempo a zabavu.',
+        eventsTitle: 'Najblizsie podujatia / Social dancing',
+        joinEvent: 'Zucastnit sa',
+        noEvents: 'Nove podujatia coskoro pribudnu.',
         communityTitle: 'Komunita',
-        communityText1:
-          'Nie sme len tanečná škola. Sme komunita ľudí, ktorí sa stretávajú na lekciách, tančiarňach a výletoch.',
-        communityText2:
-          'Swing u nás znamená priateľstvá, social dancing, spoločné eventy a miesto, kde sa budeš cítiť prirodzene od prvého večera.',
+        communityText1: 'Nie sme len tanecna skola. Sme komunita ludi, ktori sa stretavaju na lekciach, tanciarnach a vyletoch.',
+        communityText2: 'Swing u nas znamena priatelstva, social dancing, spolocne eventy a miesto, kde sa budes citit prirodzene od prveho vecera.',
         communityAlt: 'Swing komunita',
-        communityCaptionFallback: 'Swing Dance Košice komunita',
-        galleryTitle: 'Galéria / Video',
+        communityCaptionFallback: 'Swing Dance Kosice komunita',
+        galleryTitle: 'Galeria / Video',
         galleryAlt: 'Swing dance fotografia',
-        galleryCaptionFallback: 'Swing Dance Košice',
+        galleryCaptionFallback: 'Swing Dance Kosice',
         faq: 'FAQ',
         faqQ1: 'Potrebujem partnera?',
-        faqA1: 'Nepotrebuješ. Na hodinách sa striedame a partnerov meníme.',
-        faqQ2: 'Čo si mám obliecť?',
-        faqA2: 'Pohodlné oblečenie a čisté topánky. Dôležité je cítiť sa dobre a voľne.',
-        faqQ3: 'Je to pre začiatočníkov?',
-        faqA3: 'Áno. Kurzy sú pripravené tak, aby si vedel začať aj úplne od nuly.',
-        finalTitle: 'Pridaj sa k nám',
-        finalText: 'Príď si vyskúšať swing, spoznaj nových ľudí a zaži atmosféru, ktorá ťa chytí.',
+        faqA1: 'Nepotrebujes. Na hodinach sa striedame a partnerov menime.',
+        faqQ2: 'Co si mam obliect?',
+        faqA2: 'Pohodlne oblecenie a ciste topanky. Dolezite je citit sa dobre a volne.',
+        faqQ3: 'Je to pre zaciatocnikov?',
+        faqA3: 'Ano. Kurzy su pripravene tak, aby si vedel zacat aj uplne od nuly.',
+        finalTitle: 'Pridaj sa k nam',
+        finalText: 'Prid si vyskusat swing, spoznaj novych ludi a zazij atmosferu, ktora ta chyti.',
         quotesTitle: 'Swing Dance Quotes',
       }
     : {
@@ -90,10 +89,8 @@ export default async function HomePage() {
         joinEvent: 'Join Event',
         noEvents: 'New events are coming soon.',
         communityTitle: 'Community',
-        communityText1:
-          'This is not just a dance school. We are a community meeting at classes, socials, and shared trips.',
-        communityText2:
-          'For us, swing means friendships, social dancing, great events, and a place where you can feel at home from day one.',
+        communityText1: 'This is not just a dance school. We are a community meeting at classes, socials, and shared trips.',
+        communityText2: 'For us, swing means friendships, social dancing, great events, and a place where you can feel at home from day one.',
         communityAlt: 'Swing community',
         communityCaptionFallback: 'Swing Dance Kosice community',
         galleryTitle: 'Gallery / Video',
@@ -112,7 +109,6 @@ export default async function HomePage() {
       };
 
   const heroImage = '/novy_hero.jpg';
-  const sharedSectionImage = '/novy_hero2.jpg';
   const communityPhotos = media.slice(0, 3);
   const galleryPhotos = media.slice(0, 6);
 
@@ -120,7 +116,7 @@ export default async function HomePage() {
     <div className="landing-grid">
       <section className="landing-hero" style={{ backgroundImage: `url(${heroImage})` }}>
         <div className="landing-hero-overlay">
-          <p className="landing-kicker">Swing Dance Košice</p>
+          <p className="landing-kicker">Swing Dance Kosice</p>
           <h1>{copy.heroTitle}</h1>
           <p className="landing-subheadline">{copy.heroSubtitle}</p>
           <div className="landing-actions">
@@ -176,7 +172,7 @@ export default async function HomePage() {
               <p className="small">
                 {new Date(event.start).toLocaleString(dateLocale)} · {getEventCategoryLabel(locale, event.category)}
               </p>
-              <Link href="/events" className="share-link share-btn">{copy.joinEvent}</Link>
+              <Link href={`/events/${encodeURIComponent(event.id)}`} className="share-link share-btn">{copy.joinEvent}</Link>
             </article>
           ))}
           {events.length === 0 ? <p className="small">{copy.noEvents}</p> : null}
@@ -188,9 +184,16 @@ export default async function HomePage() {
         <p>{copy.communityText1}</p>
         <p>{copy.communityText2}</p>
         <div className="landing-photo-grid">
-          {(communityPhotos.length ? communityPhotos : [{ id: 'fallback', imageUrl: '/swing-dance-kosice-logo.jpg', caption: 'Swing Dance Košice' }]).map((item) => (
+          {(communityPhotos.length ? communityPhotos : [{ id: 'fallback', imageUrl: '/swing-dance-kosice-logo.jpg', caption: 'Swing Dance Kosice' }]).map((item) => (
             <figure key={item.id}>
-              <img src={sharedSectionImage} alt={item.caption ?? copy.communityAlt} loading="lazy" />
+              <Image
+                src={item.imageUrl}
+                alt={item.caption ?? copy.communityAlt}
+                width={1200}
+                height={900}
+                sizes="(max-width: 768px) 100vw, 33vw"
+                style={{ width: '100%', height: '240px', objectFit: 'cover' }}
+              />
               <figcaption className="small">{item.caption ?? copy.communityCaptionFallback}</figcaption>
             </figure>
           ))}
@@ -200,16 +203,23 @@ export default async function HomePage() {
       <section className="card">
         <h2>{copy.galleryTitle}</h2>
         <div className="landing-gallery-grid">
-          {(galleryPhotos.length ? galleryPhotos : [{ id: 'logo', imageUrl: '/swing-dance-kosice-logo.jpg', caption: 'Swing Dance Košice' }]).map((item) => (
+          {(galleryPhotos.length ? galleryPhotos : [{ id: 'logo', imageUrl: '/swing-dance-kosice-logo.jpg', caption: 'Swing Dance Kosice' }]).map((item) => (
             <figure key={item.id}>
-              <img src={sharedSectionImage} alt={item.caption ?? copy.galleryAlt} loading="lazy" />
+              <Image
+                src={item.imageUrl}
+                alt={item.caption ?? copy.galleryAlt}
+                width={1200}
+                height={900}
+                sizes="(max-width: 768px) 100vw, 25vw"
+                style={{ width: '100%', height: '240px', objectFit: 'cover' }}
+              />
               <figcaption className="small">{item.caption ?? copy.galleryCaptionFallback}</figcaption>
             </figure>
           ))}
         </div>
         <div className="landing-video-wrap">
           <iframe
-            title="Swing Dance Košice video"
+            title="Swing Dance Kosice video"
             src="https://www.youtube.com/embed/4g6A5iS7syk"
             loading="lazy"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -254,7 +264,6 @@ export default async function HomePage() {
         <h2>{copy.quotesTitle}</h2>
         <DailyQuote />
       </section>
-
     </div>
   );
 }

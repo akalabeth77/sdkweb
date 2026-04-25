@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { deleteGalleryAlbum, updateGalleryAlbum } from '@/lib/store';
+import { isEditorOrAdminSession } from '@/lib/auth-utils';
 
 const schema = z.object({
   title: z.string().min(2),
@@ -13,6 +14,10 @@ export async function PUT(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  if (!(await isEditorOrAdminSession())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   const payload = await request.json();
   const parsed = schema.safeParse(payload);
 
@@ -33,6 +38,10 @@ export async function DELETE(
   _request: Request,
   { params }: { params: { id: string } }
 ) {
+  if (!(await isEditorOrAdminSession())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     await deleteGalleryAlbum(params.id);
     return NextResponse.json({ ok: true });

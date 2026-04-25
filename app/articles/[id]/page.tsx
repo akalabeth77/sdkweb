@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getArticles, incrementArticleViews } from '@/lib/store';
+import { getArticleByIdentifier, incrementArticleViews } from '@/lib/store';
 import { getServerMessages } from '@/lib/i18n-server';
 import { getStatusLabel, toDateLocale } from '@/lib/i18n';
 import { normalizeArticleHtml } from '@/lib/article-content';
@@ -10,10 +10,9 @@ export const dynamic = 'force-dynamic';
 
 export default async function ArticleDetailPage({ params }: { params: { id: string } }) {
   const { locale, t } = getServerMessages();
-  const articles = await getArticles();
-  const article = articles.find((item) => item.id === decodeURIComponent(params.id));
+  const article = await getArticleByIdentifier(params.id);
 
-  if (!article) {
+  if (!article || article.status !== 'published') {
     notFound();
   }
 

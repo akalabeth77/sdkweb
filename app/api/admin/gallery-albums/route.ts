@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getGalleryAlbums, saveGalleryAlbum } from '@/lib/store';
+import { isEditorOrAdminSession } from '@/lib/auth-utils';
 
 const schema = z.object({
   title: z.string().min(2),
@@ -10,6 +11,10 @@ const schema = z.object({
 });
 
 export async function GET() {
+  if (!(await isEditorOrAdminSession())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const albums = await getGalleryAlbums();
     return NextResponse.json(albums);
@@ -19,6 +24,10 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  if (!(await isEditorOrAdminSession())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   const payload = await request.json();
   const parsed = schema.safeParse(payload);
 

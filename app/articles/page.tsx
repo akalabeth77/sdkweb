@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { getArticles, getTopArticles } from '@/lib/store';
+import { getPublishedArticles, getTopArticles } from '@/lib/store';
 import { getServerMessages } from '@/lib/i18n-server';
 import { getStatusLabel, toDateLocale } from '@/lib/i18n';
 import { normalizeArticleHtml } from '@/lib/article-content';
@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function ArticlesPage() {
   const { locale, t } = getServerMessages();
-  const [articles, topArticles] = await Promise.all([getArticles(), getTopArticles(10)]);
+  const [articles, topArticles] = await Promise.all([getPublishedArticles(), getTopArticles(10)]);
 
   return (
     <section className="card">

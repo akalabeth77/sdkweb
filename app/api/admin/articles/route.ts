@@ -54,6 +54,9 @@ export async function POST(request: Request) {
       slug: parsed.data.slug,
       excerpt: parsed.data.excerpt,
       featuredImage: parsed.data.featuredImage,
+      categoryId: parsed.data.categoryId,
+      publishedAt: parsed.data.status === 'published' ? new Date().toISOString() : undefined,
+      updatedAt: new Date().toISOString(),
       createdAt: new Date().toISOString(),
       author: 'Admin' // TODO: Get from session
     });

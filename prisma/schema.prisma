@@ -24,6 +24,8 @@ model Article {
   category  ArticleCategory? @relation(fields: [categoryId], references: [id])
   categoryId String?
 
+  @@index([status, publishedAt])
+  @@index([categoryId])
   @@map("articles")
 }
 
@@ -63,6 +65,8 @@ model EventRegistration {
   event InternalEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
   @@unique([userId, eventId])
+  @@index([eventId, status])
+  @@index([userId, status])
   @@map("event_registrations")
 }
 
@@ -77,6 +81,7 @@ model Notification {
 
   user AppUser @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId, isRead, createdAt])
   @@map("notifications")
 }
 
@@ -90,6 +95,7 @@ model Device {
 
   user AppUser @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId, lastSeenAt])
   @@map("devices")
 }
 
@@ -102,6 +108,7 @@ model ExternalSyncJob {
   message    String?
   createdAt  DateTime @default(now())
 
+  @@index([provider, status, createdAt])
   @@map("external_sync_jobs")
 }
 
@@ -115,6 +122,7 @@ model ExternalItem {
   createdAt DateTime @default(now())
 
   @@unique([provider, externalId, type])
+  @@index([provider, type, syncedAt])
   @@map("external_items")
 }
 
@@ -132,6 +140,8 @@ model InternalEvent {
 
   registrations EventRegistration[]
 
+  @@index([start, category])
+  @@index([recurrenceGroupId])
   @@map("internal_events")
 }
 

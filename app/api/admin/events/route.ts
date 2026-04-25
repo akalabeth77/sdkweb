@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { fetchFacebookEvents, fetchGoogleCalendarEvents } from '@/lib/social';
 import { getInternalEvents, saveInternalEvent } from '@/lib/store';
+import { isEditorOrAdminSession } from '@/lib/auth-utils';
 
 const weekdaySchema = z.enum(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']);
 const categorySchema = z.enum(['course', 'dance-party', 'workshop', 'festival', 'concert', 'other']);
@@ -39,6 +40,10 @@ function weekdayToJsDay(weekday: z.infer<typeof weekdaySchema>): number {
 }
 
 export async function GET() {
+  if (!(await isEditorOrAdminSession())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const [internalResult, facebookResult, googleResult] = await Promise.allSettled([
       getInternalEvents(),
@@ -59,6 +64,10 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  if (!(await isEditorOrAdminSession())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   const payload = await request.json();
   const parsed = schema.safeParse(payload);
 
