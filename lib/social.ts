@@ -102,8 +102,11 @@ export async function fetchPortalData() {
     )
   ).flat();
 
+  const now = new Date().toISOString();
+
   return {
     events: [...fbEvents, ...gEvents, ...internalEvents, ...fallbackEvents]
+      .filter((e) => e.start >= now)
       .sort((a, b) => a.start.localeCompare(b.start))
       .slice(0, 20),
     media: [...internalMedia, ...albumMedia, ...igMedia, ...fallbackMedia].slice(0, 24)

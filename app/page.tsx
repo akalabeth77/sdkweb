@@ -6,6 +6,8 @@ import { getServerMessages } from '@/lib/i18n-server';
 import { getEventCategoryLabel, toDateLocale } from '@/lib/i18n';
 import { DailyQuote } from '@/components/daily-quote';
 
+export const revalidate = 3600;
+
 export const metadata: Metadata = {
   title: 'Swing Dance Kosice - kurzy tanca Lindy Hop Kosice',
   description: 'Kurzy swingoveho tanca v Kosiciach. Nauc sa Lindy Hop, spoznaj komunitu a zazij swingove tanciarne. Zaciatocnici vitani.',
@@ -166,15 +168,23 @@ export default async function HomePage() {
         </div>
         <div className="card">
           <h2>{copy.eventsTitle}</h2>
-          {events.slice(0, 5).map((event) => (
-            <article key={event.id} className="landing-event-item">
-              <strong>{event.title}</strong>
-              <p className="small">
-                {new Date(event.start).toLocaleString(dateLocale)} · {getEventCategoryLabel(locale, event.category)}
-              </p>
-              <Link href={`/events/${encodeURIComponent(event.id)}`} className="share-link share-btn">{copy.joinEvent}</Link>
-            </article>
-          ))}
+          {events.slice(0, 5).map((event) => {
+            const d = new Date(event.start);
+            const dateStr = d.toLocaleDateString(dateLocale, { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });
+            const timeStr = d.toLocaleTimeString(dateLocale, { hour: '2-digit', minute: '2-digit' });
+            return (
+              <article key={event.id} className="landing-event-item">
+                <strong>{event.title}</strong>
+                <p className="small" style={{ marginTop: '0.25rem' }}>
+                  📅 {dateStr} · ⏰ {timeStr}
+                </p>
+                <p className="small" style={{ color: 'var(--muted, #6b7280)' }}>
+                  {getEventCategoryLabel(locale, event.category)}
+                </p>
+                <Link href={`/events/${encodeURIComponent(event.id)}`} className="share-link share-btn">{copy.joinEvent}</Link>
+              </article>
+            );
+          })}
           {events.length === 0 ? <p className="small">{copy.noEvents}</p> : null}
         </div>
       </section>
