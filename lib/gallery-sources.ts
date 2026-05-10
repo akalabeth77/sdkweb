@@ -98,6 +98,22 @@ async function fetchLocalFolderAlbumMedia(album: GalleryAlbum): Promise<MediaIte
   }
 }
 
+const IG_POST_RE = /^https:\/\/(www\.)?instagram\.com\/p\/[A-Za-z0-9_-]+\/?/;
+
+function fetchInstagramEmbedAlbumMedia(album: GalleryAlbum): MediaItem[] {
+  return album.sourceRef
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => IG_POST_RE.test(line))
+    .map((url, index) => ({
+      id: `alb-ig-embed-${album.id}-${index}`,
+      imageUrl: url,
+      caption: album.title,
+      albumTitle: album.title,
+      source: 'instagram-embed' as const,
+    }));
+}
+
 export async function fetchAlbumMedia(album: GalleryAlbum): Promise<MediaItem[]> {
   if (!album.isActive) {
     return [];
@@ -105,6 +121,10 @@ export async function fetchAlbumMedia(album: GalleryAlbum): Promise<MediaItem[]>
 
   if (album.sourceType === 'instagram') {
     return fetchInstagramAlbumMedia(album);
+  }
+
+  if (album.sourceType === 'instagram-embed') {
+    return fetchInstagramEmbedAlbumMedia(album);
   }
 
   if (album.sourceType === 'google-drive') {

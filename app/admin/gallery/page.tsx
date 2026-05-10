@@ -18,10 +18,25 @@ type AlbumForm = {
   isActive: boolean;
 };
 
+const SOURCE_TYPE_OPTIONS: { value: GalleryAlbumSource; label: string }[] = [
+  { value: 'instagram', label: 'Instagram (account ID + token)' },
+  { value: 'instagram-embed', label: 'Instagram Embed (URL postov, bez tokenu)' },
+  { value: 'google-drive', label: 'Google Drive folder' },
+  { value: 'local-folder', label: 'Local folder' },
+];
+
+const SOURCE_HINTS: Record<GalleryAlbumSource, string> = {
+  instagram: 'Zadaj Instagram Business account ID. Vyžaduje IG_ACCESS_TOKEN v .env.',
+  'instagram-embed': 'Vlož URL Instagram postov (jeden na riadok), napr. https://www.instagram.com/p/ABC123/. Nevyžaduje token.',
+  'google-drive': 'Verejný Google Drive folder URL alebo folder ID. Vyžaduje GOOGLE_DRIVE_API_KEY.',
+  'local-folder': 'Relatívna cesta pod LOCAL_GALLERY_ROOT.',
+};
+
 export default function AdminGalleryPage() {
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [albums, setAlbums] = useState<GalleryAlbum[]>([]);
   const [message, setMessage] = useState('');
+  const [newAlbumSourceType, setNewAlbumSourceType] = useState<GalleryAlbumSource>('instagram');
   const { locale, t } = useLanguage();
 
   async function loadMedia() {
@@ -172,14 +187,24 @@ export default function AdminGalleryPage() {
       <form onSubmit={createAlbum}>
         <label>{t.admin.galleryAlbumName}<input name="title" required /></label>
         <label>{t.admin.galleryAlbumType}
-          <select name="sourceType" defaultValue="instagram">
-            <option value="instagram">Instagram account ID</option>
-            <option value="google-drive">Google Drive folder</option>
-            <option value="local-folder">Local folder</option>
+          <select
+            name="sourceType"
+            value={newAlbumSourceType}
+            onChange={(e) => setNewAlbumSourceType(e.target.value as GalleryAlbumSource)}
+          >
+            {SOURCE_TYPE_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
           </select>
         </label>
-        <label>{t.admin.galleryAlbumSourceRef}<input name="sourceRef" required /></label>
-        <p className="small">Instagram: account ID. Google Drive: public folder URL alebo folder ID. Local folder: relatívna cesta pod LOCAL_GALLERY_ROOT.</p>
+        <label>{t.admin.galleryAlbumSourceRef}
+          {newAlbumSourceType === 'instagram-embed' ? (
+            <textarea name="sourceRef" required rows={5} placeholder="https://www.instagram.com/p/ABC123/&#10;https://www.instagram.com/p/DEF456/" style={{ width: '100%', fontFamily: 'monospace', fontSize: '0.85em' }} />
+          ) : (
+            <input name="sourceRef" required />
+          )}
+        </label>
+        <p className="small">{SOURCE_HINTS[newAlbumSourceType]}</p>
         <label><input name="isActive" type="checkbox" defaultChecked /> {t.admin.galleryAlbumActive}</label>
         <button type="submit">{t.admin.createGalleryAlbum}</button>
       </form>
@@ -241,14 +266,19 @@ function EditableAlbumCard({
       </label>
       <label>{t.admin.galleryAlbumType}
         <select value={sourceType} onChange={(event) => setSourceType(event.target.value as GalleryAlbumSource)}>
-          <option value="instagram">Instagram account ID</option>
-          <option value="google-drive">Google Drive folder</option>
-          <option value="local-folder">Local folder</option>
+          {SOURCE_TYPE_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
         </select>
       </label>
       <label>{t.admin.galleryAlbumSourceRef}
-        <input value={sourceRef} onChange={(event) => setSourceRef(event.target.value)} required />
+        {sourceType === 'instagram-embed' ? (
+          <textarea value={sourceRef} onChange={(event) => setSourceRef(event.target.value)} required rows={5} style={{ width: '100%', fontFamily: 'monospace', fontSize: '0.85em' }} />
+        ) : (
+          <input value={sourceRef} onChange={(event) => setSourceRef(event.target.value)} required />
+        )}
       </label>
+      <p className="small">{SOURCE_HINTS[sourceType]}</p>
       <label><input type="checkbox" checked={isActive} onChange={(event) => setIsActive(event.target.checked)} /> {t.admin.galleryAlbumActive}</label>
       <button type="submit">{t.common.save}</button>
       <button type="button" onClick={() => void onDelete(album.id)}>{t.common.delete}</button>

@@ -1,5 +1,6 @@
 import { fetchPortalData } from '@/lib/social';
 import Image from 'next/image';
+import Script from 'next/script';
 import { getServerMessages } from '@/lib/i18n-server';
 import { getSourceLabel } from '@/lib/i18n';
 
@@ -23,20 +24,35 @@ export default async function GalleryPage() {
       },
     ];
 
+  const hasEmbeds = items.some((item) => item.source === 'instagram-embed');
+
   return (
     <section className="card">
       <h1>{t.gallery.title}</h1>
+      {hasEmbeds && (
+        <Script src="https://www.instagram.com/embed.js" strategy="lazyOnload" />
+      )}
       <div className="grid grid-2">
         {items.map((item) => (
           <figure key={item.id}>
-            <Image
-              src={item.imageUrl}
-              alt={item.caption ?? t.gallery.imageAlt}
-              width={1200}
-              height={800}
-              sizes="(max-width: 768px) 100vw, 50vw"
-              style={{ width: '100%', height: 'auto' }}
-            />
+            {item.source === 'instagram-embed' ? (
+              <blockquote
+                className="instagram-media"
+                data-instgrm-captioned
+                data-instgrm-permalink={item.imageUrl}
+                data-instgrm-version="14"
+                style={{ margin: '0 auto', width: '100%', maxWidth: '540px' }}
+              />
+            ) : (
+              <Image
+                src={item.imageUrl}
+                alt={item.caption ?? t.gallery.imageAlt}
+                width={1200}
+                height={800}
+                sizes="(max-width: 768px) 100vw, 50vw"
+                style={{ width: '100%', height: 'auto' }}
+              />
+            )}
             <figcaption className="small">{item.caption}{item.albumTitle ? ` · ${item.albumTitle}` : ''} ({getSourceLabel(locale, item.source)})</figcaption>
           </figure>
         ))}
