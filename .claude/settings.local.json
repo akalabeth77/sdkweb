@@ -4,7 +4,23 @@
       "Bash(npx tsc *)",
       "Bash(npm install *)",
       "Bash(node_modules/.bin/tsc --noEmit)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(node_modules/.bin/expo install *)",
+      "Bash(adb kill-server *)",
+      "Bash(adb start-server *)",
+      "Bash(adb devices *)",
+      "Bash(\"C:\\\\Users\\\\andy\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\" kill-server *)",
+      "Bash(\"C:\\\\Users\\\\andy\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\" start-server *)",
+      "Bash(\"C:\\\\Users\\\\andy\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\" devices *)",
+      "Bash(Remove-Item -Recurse -Force \"C:\\\\Users\\\\andy\\\\Documents\\\\Github\\\\sdkweb\\\\mobile\\\\.expo\" -ErrorAction SilentlyContinue)",
+      "Bash(Write-Output \"Cache cleared\")",
+      "Bash(node_modules/.bin/expo start *)",
+      "Bash(\"C:\\\\Users\\\\andy\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\" disconnect *)",
+      "PowerShell($env:ANDROID_SERIAL = \"emulator-5554\"; cd \"C:\\\\Users\\\\andy\\\\Documents\\\\Github\\\\sdkweb\\\\mobile\"; node_modules\\\\.bin\\\\expo start --android 2>&1)",
+      "Bash(ANDROID_SERIAL=emulator-5554 node_modules/.bin/expo start --android)",
+      "Bash(C:\\\\Users\\\\andy\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe *)",
+      "Bash(\"C:\\\\Users\\\\andy\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\" -s emulator-5554 shell am start -a android.intent.action.VIEW -d \"exp://127.0.0.1:8081\" host.exp.exponent)",
+      "Bash(\"C:\\\\Users\\\\andy\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\" -s emulator-5554 reverse tcp:8081 tcp:8081)"
     ]
   }
 }
