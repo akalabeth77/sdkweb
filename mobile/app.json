@@ -1,0 +1,35 @@
+{
+  "expo": {
+    "name": "Swing Dance Kosice",
+    "slug": "swing-dance-kosice",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "scheme": "sdkapp",
+    "android": {
+      "package": "com.swingdancekosice.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#1a1a2e"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "com.swingdancekosice.app",
+      "supportsTablet": true
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-notifications",
+        {
+          "color": "#1a1a2e"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "apiUrl": "https://sdkweb.vercel.app"
+    }
+  }
+}
