@@ -39,7 +39,8 @@
       "Bash(\"C:\\\\Users\\\\andy\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\" -t 14 shell dumpsys activity top)",
       "Bash(netsh advfirewall *)",
       "Bash(taskkill //F //IM node.exe)",
-      "Bash(curl *)"
+      "Bash(curl *)",
+      "Bash(git commit -m 'fix: add error logging to gallery-albums POST for Vercel diagnostics *)"
     ]
   }
 }
