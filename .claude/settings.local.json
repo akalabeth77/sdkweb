@@ -27,7 +27,19 @@
       "Bash(\"C:\\\\Users\\\\andy\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\" -t 14 shell am start -a android.intent.action.VIEW -d \"exp://192.168.31.212:8081\" host.exp.exponent)",
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(\"C:\\\\Users\\\\andy\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\" -t 14 logcat -d -s ReactNativeJS:*)",
+      "Bash(\"C:\\\\Users\\\\andy\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\" -t 14 logcat -d)",
+      "Bash(curl -s \"http://127.0.0.1:8081/\")",
+      "Bash(\"C:\\\\Users\\\\andy\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\" -t 14 logcat -c)",
+      "Bash(netstat -ano)",
+      "Bash(awk '{print $5}')",
+      "Bash(kill -9 26308)",
+      "Bash(taskkill //F //PID 26308)",
+      "Bash(\"C:\\\\Users\\\\andy\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\" -t 14 shell dumpsys activity top)",
+      "Bash(netsh advfirewall *)",
+      "Bash(taskkill //F //IM node.exe)",
+      "Bash(curl *)"
     ]
   }
 }
