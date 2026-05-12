@@ -1,7 +1,10 @@
-import { View, Text, FlatList, StyleSheet, RefreshControl } from 'react-native';
+import { View, Text, FlatList, StyleSheet, RefreshControl, TouchableOpacity } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
+import * as WebBrowser from 'expo-web-browser';
 import { api } from '@/lib/api';
 import type { EventItem } from '@/lib/types';
+
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'https://sdkweb.vercel.app';
 
 const CATEGORY_COLOR: Record<string, string> = {
   course: '#2563eb',
@@ -44,7 +47,11 @@ export default function EventsScreen() {
       contentContainerStyle={styles.list}
       refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="#1a1a2e" />}
       ListEmptyComponent={<Text style={styles.empty}>Žiadne nadchádzajúce eventy.</Text>}
-      renderItem={({ item }) => <EventCard event={item} />}
+      renderItem={({ item }) => (
+        <TouchableOpacity onPress={() => void WebBrowser.openBrowserAsync(`${BASE_URL}/events/${encodeURIComponent(item.id)}`)}>
+          <EventCard event={item} />
+        </TouchableOpacity>
+      )}
     />
   );
 }

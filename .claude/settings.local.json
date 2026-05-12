@@ -20,7 +20,14 @@
       "Bash(ANDROID_SERIAL=emulator-5554 node_modules/.bin/expo start --android)",
       "Bash(C:\\\\Users\\\\andy\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe *)",
       "Bash(\"C:\\\\Users\\\\andy\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\" -s emulator-5554 shell am start -a android.intent.action.VIEW -d \"exp://127.0.0.1:8081\" host.exp.exponent)",
-      "Bash(\"C:\\\\Users\\\\andy\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\" -s emulator-5554 reverse tcp:8081 tcp:8081)"
+      "Bash(\"C:\\\\Users\\\\andy\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\" -s emulator-5554 reverse tcp:8081 tcp:8081)",
+      "Bash(curl -s http://127.0.0.1:8081/status)",
+      "Bash(ipconfig)",
+      "Bash(grep -v \"^$\")",
+      "Bash(\"C:\\\\Users\\\\andy\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\" -t 14 shell am start -a android.intent.action.VIEW -d \"exp://192.168.31.212:8081\" host.exp.exponent)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)"
     ]
   }
 }

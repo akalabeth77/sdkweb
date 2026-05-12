@@ -6,6 +6,21 @@ import { getEventCategoryColor, getEventCategoryLabel, getSourceLabel, toDateLoc
 import { ShareButtons } from '@/components/share-buttons';
 import { EventRegistrationButton } from '@/components/event-registration-button';
 
+function toGCalDate(iso: string): string {
+  return iso.replace(/[-:.]/g, '').slice(0, 15) + 'Z';
+}
+
+function buildGCalUrl(title: string, start: string, end?: string, location?: string, description?: string): string {
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: title,
+    dates: `${toGCalDate(start)}/${toGCalDate(end ?? start)}`,
+    ...(location ? { location } : {}),
+    ...(description ? { details: description } : {}),
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+
 export const dynamic = 'force-dynamic';
 
 export default async function EventDetailPage({ params }: { params: { id: string } }) {
@@ -35,6 +50,16 @@ export default async function EventDetailPage({ params }: { params: { id: string
       <div className="mt-6">
         <EventRegistrationButton eventId={event.id} isAvailable={event.source === 'internal'} />
       </div>
+
+      <a
+        href={buildGCalUrl(event.title, event.start, event.end, event.location, event.description)}
+        target="_blank"
+        rel="noreferrer"
+        className="share-link share-btn"
+        style={{ display: 'inline-block', marginTop: '0.75rem' }}
+      >
+        📅 {locale === 'sk' ? 'Pridať do Google Kalendára' : 'Add to Google Calendar'}
+      </a>
 
       <ShareButtons
         title={event.title}
