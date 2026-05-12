@@ -98,49 +98,43 @@ async function fetchLocalFolderAlbumMedia(album: GalleryAlbum): Promise<MediaIte
   }
 }
 
-const GPHOTO_URL_RE = /https:\/\/lh3\.googleusercontent\.com\/pw\/[A-Za-z0-9_-]+/g;
-
-function googlePhotosLinkCard(album: GalleryAlbum): MediaItem[] {
-  return [{
-    id: `alb-gp-${album.id}`,
-    imageUrl: album.sourceRef.trim(),
-    caption: album.title,
-    albumTitle: album.title,
-    source: 'google-photos' as const,
-  }];
-}
-
 async function fetchGooglePhotosAlbumMedia(album: GalleryAlbum): Promise<MediaItem[]> {
   const albumUrl = album.sourceRef.trim();
   if (!albumUrl.startsWith('https://photos.google.com/')) return [];
+
+  let thumbnailUrl: string | null = null;
 
   try {
     const res = await fetch(albumUrl, {
       next: { revalidate: 3600 },
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
         'Accept-Language': 'en-US,en;q=0.9',
       },
     });
 
-    if (!res.ok) return googlePhotosLinkCard(album);
-
-    const html = await res.text();
-    const rawUrls = html.match(GPHOTO_URL_RE) ?? [];
-    const photoUrls = [...new Set(rawUrls)].slice(0, 40);
-
-    if (photoUrls.length === 0) return googlePhotosLinkCard(album);
-
-    return photoUrls.map((url, index) => ({
-      id: `alb-gp-${album.id}-${index}`,
-      imageUrl: `${url}=w1200-h900`,
-      caption: index === 0 ? album.title : undefined,
-      albumTitle: album.title,
-      source: 'google-photos' as const,
-    }));
+    if (res.ok) {
+      const html = await res.text();
+      // og:image is always a photo (never video) and server-rendered
+      const match = html.match(/<meta[^>]+property="og:image"[^>]+content="([^"]+)"/i)
+                 ?? html.match(/<meta[^>]+content="([^"]+)"[^>]+property="og:image"/i);
+      if (match?.[1]?.startsWith('https://lh3.googleusercontent.com')) {
+        // Strip existing size params and set our own
+        thumbnailUrl = match[1].replace(/=w\d+.*$/, '') + '=w1200-h900';
+      }
+    }
   } catch {
-    return googlePhotosLinkCard(album);
+    // fetch failed — show link card without thumbnail
   }
+
+  return [{
+    id: `alb-gp-${album.id}`,
+    imageUrl: thumbnailUrl ?? '',
+    caption: album.title,
+    albumTitle: album.title,
+    source: 'google-photos' as const,
+    linkUrl: albumUrl,
+  }];
 }
 
 const IG_POST_RE = /^https:\/\/(www\.)?instagram\.com\/p\/[A-Za-z0-9_-]+\/?/;

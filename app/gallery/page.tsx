@@ -43,14 +43,22 @@ export default async function GalleryPage() {
                 data-instgrm-version="14"
                 style={{ margin: '0 auto', width: '100%', maxWidth: '540px' }}
               />
-            ) : item.source === 'google-photos' && item.imageUrl.startsWith('https://photos.google.com') ? (
-              <a
-                href={item.imageUrl}
-                target="_blank"
-                rel="noreferrer"
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '2rem 1rem', background: '#f5f5f5', borderRadius: '8px', textDecoration: 'none', color: '#1a1a2e', fontWeight: 600 }}
-              >
-                📷 {item.caption ?? item.albumTitle} — Otvoriť album
+            ) : item.source === 'google-photos' ? (
+              <a href={item.linkUrl ?? '#'} target="_blank" rel="noreferrer" style={{ display: 'block', textDecoration: 'none' }}>
+                {item.imageUrl ? (
+                  <Image
+                    src={item.imageUrl}
+                    alt={item.caption ?? t.gallery.imageAlt}
+                    width={1200}
+                    height={900}
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    style={{ width: '100%', height: 'auto' }}
+                  />
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '2rem 1rem', background: '#f5f5f5', borderRadius: '8px', color: '#1a1a2e', fontWeight: 600 }}>
+                    📷 {item.caption ?? item.albumTitle} — Otvoriť album
+                  </div>
+                )}
               </a>
             ) : (
               <Image

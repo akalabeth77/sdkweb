@@ -81,6 +81,7 @@ export interface MediaItem {
   caption?: string;
   albumTitle?: string;
   source: 'instagram' | 'facebook' | 'internal' | 'instagram-embed' | 'google-photos';
+  linkUrl?: string;
 }
 
 export type GalleryAlbumSource = 'instagram' | 'google-drive' | 'local-folder' | 'instagram-embed' | 'google-photos';
