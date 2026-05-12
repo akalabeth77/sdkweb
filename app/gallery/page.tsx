@@ -43,7 +43,7 @@ export default async function GalleryPage() {
                 data-instgrm-version="14"
                 style={{ margin: '0 auto', width: '100%', maxWidth: '540px' }}
               />
-            ) : item.source === 'google-photos' ? (
+            ) : item.source === 'google-photos' && item.imageUrl.startsWith('https://photos.google.com') ? (
               <a
                 href={item.imageUrl}
                 target="_blank"

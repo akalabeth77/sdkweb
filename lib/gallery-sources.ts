@@ -98,16 +98,49 @@ async function fetchLocalFolderAlbumMedia(album: GalleryAlbum): Promise<MediaIte
   }
 }
 
-function fetchGooglePhotosAlbumMedia(album: GalleryAlbum): MediaItem[] {
-  const url = album.sourceRef.trim();
-  if (!url.startsWith('https://photos.google.com/')) return [];
+const GPHOTO_URL_RE = /https:\/\/lh3\.googleusercontent\.com\/pw\/[A-Za-z0-9_-]+/g;
+
+function googlePhotosLinkCard(album: GalleryAlbum): MediaItem[] {
   return [{
     id: `alb-gp-${album.id}`,
-    imageUrl: url,
+    imageUrl: album.sourceRef.trim(),
     caption: album.title,
     albumTitle: album.title,
     source: 'google-photos' as const,
   }];
+}
+
+async function fetchGooglePhotosAlbumMedia(album: GalleryAlbum): Promise<MediaItem[]> {
+  const albumUrl = album.sourceRef.trim();
+  if (!albumUrl.startsWith('https://photos.google.com/')) return [];
+
+  try {
+    const res = await fetch(albumUrl, {
+      next: { revalidate: 3600 },
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Accept-Language': 'en-US,en;q=0.9',
+      },
+    });
+
+    if (!res.ok) return googlePhotosLinkCard(album);
+
+    const html = await res.text();
+    const rawUrls = html.match(GPHOTO_URL_RE) ?? [];
+    const photoUrls = [...new Set(rawUrls)].slice(0, 40);
+
+    if (photoUrls.length === 0) return googlePhotosLinkCard(album);
+
+    return photoUrls.map((url, index) => ({
+      id: `alb-gp-${album.id}-${index}`,
+      imageUrl: `${url}=w1200-h900`,
+      caption: index === 0 ? album.title : undefined,
+      albumTitle: album.title,
+      source: 'google-photos' as const,
+    }));
+  } catch {
+    return googlePhotosLinkCard(album);
+  }
 }
 
 const IG_POST_RE = /^https:\/\/(www\.)?instagram\.com\/p\/[A-Za-z0-9_-]+\/?/;
@@ -140,7 +173,7 @@ export async function fetchAlbumMedia(album: GalleryAlbum): Promise<MediaItem[]>
   }
 
   if (album.sourceType === 'google-photos') {
-    return fetchGooglePhotosAlbumMedia(album);
+    return await fetchGooglePhotosAlbumMedia(album);
   }
 
   if (album.sourceType === 'google-drive') {
