@@ -80,10 +80,10 @@ export interface MediaItem {
   imageUrl: string;
   caption?: string;
   albumTitle?: string;
-  source: 'instagram' | 'facebook' | 'internal' | 'instagram-embed';
+  source: 'instagram' | 'facebook' | 'internal' | 'instagram-embed' | 'google-photos';
 }
 
-export type GalleryAlbumSource = 'instagram' | 'google-drive' | 'local-folder' | 'instagram-embed';
+export type GalleryAlbumSource = 'instagram' | 'google-drive' | 'local-folder' | 'instagram-embed' | 'google-photos';
 
 export interface GalleryAlbum {
   id: string;

@@ -60,7 +60,7 @@ async function fetchGoogleDriveAlbumMedia(album: GalleryAlbum): Promise<MediaIte
     .filter((file: any) => typeof file.mimeType === 'string' && file.mimeType.startsWith('image/'))
     .map((file: any) => ({
       id: `alb-gd-${album.id}-${file.id}`,
-      imageUrl: `https://drive.google.com/uc?export=view&id=${file.id}`,
+      imageUrl: `https://lh3.googleusercontent.com/d/${file.id}`,
       caption: file.name,
       albumTitle: album.title,
       source: 'internal',
@@ -98,6 +98,18 @@ async function fetchLocalFolderAlbumMedia(album: GalleryAlbum): Promise<MediaIte
   }
 }
 
+function fetchGooglePhotosAlbumMedia(album: GalleryAlbum): MediaItem[] {
+  const url = album.sourceRef.trim();
+  if (!url.startsWith('https://photos.google.com/')) return [];
+  return [{
+    id: `alb-gp-${album.id}`,
+    imageUrl: url,
+    caption: album.title,
+    albumTitle: album.title,
+    source: 'google-photos' as const,
+  }];
+}
+
 const IG_POST_RE = /^https:\/\/(www\.)?instagram\.com\/p\/[A-Za-z0-9_-]+\/?/;
 
 function fetchInstagramEmbedAlbumMedia(album: GalleryAlbum): MediaItem[] {
@@ -125,6 +137,10 @@ export async function fetchAlbumMedia(album: GalleryAlbum): Promise<MediaItem[]>
 
   if (album.sourceType === 'instagram-embed') {
     return fetchInstagramEmbedAlbumMedia(album);
+  }
+
+  if (album.sourceType === 'google-photos') {
+    return fetchGooglePhotosAlbumMedia(album);
   }
 
   if (album.sourceType === 'google-drive') {

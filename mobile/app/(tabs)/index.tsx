@@ -11,6 +11,20 @@ import type { EventItem } from '@/lib/types';
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'https://sdkweb.vercel.app';
 
+function buildGCalUrl(event: EventItem): string {
+  function toGCal(iso: string) {
+    return iso.replace(/[-:.]/g, '').slice(0, 15) + 'Z';
+  }
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: event.title,
+    dates: `${toGCal(event.start)}/${toGCal(event.end ?? event.start)}`,
+    ...(event.location ? { location: event.location } : {}),
+    ...(event.description ? { details: event.description } : {}),
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+
 const CATEGORY_COLOR: Record<string, string> = {
   course: '#2563eb', 'dance-party': '#db2777', workshop: '#7c3aed',
   festival: '#ea580c', concert: '#059669', other: '#6b7280',
@@ -146,6 +160,13 @@ function EventCard({
           <Text style={styles.cardDesc} numberOfLines={2}>{event.description}</Text>
         ) : null}
 
+        <TouchableOpacity
+          style={styles.calBtn}
+          onPress={() => void WebBrowser.openBrowserAsync(buildGCalUrl(event))}
+        >
+          <Text style={styles.calBtnText}>📅 Pridať do kalendára</Text>
+        </TouchableOpacity>
+
         {isLoggedIn && isInternal ? (
           <TouchableOpacity
             style={[styles.registerBtn, registering && styles.registerBtnDisabled]}
@@ -186,7 +207,9 @@ const styles = StyleSheet.create({
   cardDate: { fontSize: 13, color: '#444', marginBottom: 2 },
   cardMeta: { fontSize: 13, color: '#555', marginTop: 4 },
   cardDesc: { fontSize: 13, color: '#666', marginTop: 8, lineHeight: 19 },
-  registerBtn: { marginTop: 12, backgroundColor: '#1a1a2e', borderRadius: 8, paddingVertical: 10, alignItems: 'center' },
+  calBtn: { marginTop: 8, borderWidth: 1, borderColor: '#ddd', borderRadius: 8, paddingVertical: 8, alignItems: 'center' },
+  calBtnText: { fontSize: 13, color: '#555' },
+  registerBtn: { marginTop: 8, backgroundColor: '#1a1a2e', borderRadius: 8, paddingVertical: 10, alignItems: 'center' },
   registerBtnDisabled: { opacity: 0.5 },
   registerBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
 });

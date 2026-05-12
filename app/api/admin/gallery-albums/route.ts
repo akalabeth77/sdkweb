@@ -5,7 +5,7 @@ import { isEditorOrAdminSession } from '@/lib/auth-utils';
 
 const schema = z.object({
   title: z.string().min(2),
-  sourceType: z.enum(['instagram', 'instagram-embed', 'google-drive', 'local-folder']),
+  sourceType: z.enum(['instagram', 'instagram-embed', 'google-photos', 'google-drive', 'local-folder']),
   sourceRef: z.string().min(1),
   isActive: z.boolean().default(true),
 });

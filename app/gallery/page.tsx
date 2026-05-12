@@ -43,6 +43,15 @@ export default async function GalleryPage() {
                 data-instgrm-version="14"
                 style={{ margin: '0 auto', width: '100%', maxWidth: '540px' }}
               />
+            ) : item.source === 'google-photos' ? (
+              <a
+                href={item.imageUrl}
+                target="_blank"
+                rel="noreferrer"
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '2rem 1rem', background: '#f5f5f5', borderRadius: '8px', textDecoration: 'none', color: '#1a1a2e', fontWeight: 600 }}
+              >
+                📷 {item.caption ?? item.albumTitle} — Otvoriť album
+              </a>
             ) : (
               <Image
                 src={item.imageUrl}

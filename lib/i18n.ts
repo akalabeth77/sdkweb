@@ -520,6 +520,7 @@ export function getSourceLabel(locale: Locale, source: string): string {
   if (source === 'facebook') return common.facebook;
   if (source === 'google') return common.google;
   if (source === 'instagram' || source === 'instagram-embed') return common.instagram;
+  if (source === 'google-photos') return 'Google Photos';
   return source;
 }
 

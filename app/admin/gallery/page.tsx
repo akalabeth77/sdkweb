@@ -21,6 +21,7 @@ type AlbumForm = {
 const SOURCE_TYPE_OPTIONS: { value: GalleryAlbumSource; label: string }[] = [
   { value: 'instagram', label: 'Instagram (account ID + token)' },
   { value: 'instagram-embed', label: 'Instagram Embed (URL postov, bez tokenu)' },
+  { value: 'google-photos', label: 'Google Photos (zdieľaný album)' },
   { value: 'google-drive', label: 'Google Drive folder' },
   { value: 'local-folder', label: 'Local folder' },
 ];
@@ -28,6 +29,7 @@ const SOURCE_TYPE_OPTIONS: { value: GalleryAlbumSource; label: string }[] = [
 const SOURCE_HINTS: Record<GalleryAlbumSource, string> = {
   instagram: 'Zadaj Instagram Business account ID. Vyžaduje IG_ACCESS_TOKEN v .env.',
   'instagram-embed': 'Vlož URL Instagram postov (jeden na riadok), napr. https://www.instagram.com/p/ABC123/. Nevyžaduje token.',
+  'google-photos': 'Vlož URL zdieľaného Google Photos albumu (photos.google.com/share/...). Zobrazí sa ako odkaz v galérii.',
   'google-drive': 'Verejný Google Drive folder URL alebo folder ID. Vyžaduje GOOGLE_DRIVE_API_KEY.',
   'local-folder': 'Relatívna cesta pod LOCAL_GALLERY_ROOT.',
 };

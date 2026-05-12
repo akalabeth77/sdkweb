@@ -4,14 +4,7 @@ import { fetchAlbumMedia } from './gallery-sources';
 
 const fallbackEvents: EventItem[] = [];
 
-const fallbackMedia: MediaItem[] = [
-  {
-    id: 'm1',
-    imageUrl: 'https://images.unsplash.com/photo-1516585427167-9f4af9627e6c?auto=format&fit=crop&w=1200&q=80',
-    caption: 'Ukážková swing fotografia',
-    source: 'internal'
-  }
-];
+const fallbackMedia: MediaItem[] = [];
 
 export async function fetchFacebookEvents(): Promise<EventItem[]> {
   const pageId = process.env.FB_PAGE_ID;

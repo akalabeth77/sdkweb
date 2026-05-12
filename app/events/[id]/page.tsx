@@ -1,10 +1,11 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { fetchPortalData } from '@/lib/social';
 import { getServerMessages } from '@/lib/i18n-server';
 import { getEventCategoryColor, getEventCategoryLabel, getSourceLabel, toDateLocale } from '@/lib/i18n';
 import { ShareButtons } from '@/components/share-buttons';
 import { EventRegistrationButton } from '@/components/event-registration-button';
+import { getInternalEvents } from '@/lib/store';
+import { fetchFacebookEvents, fetchGoogleCalendarEvents } from '@/lib/social';
 
 function toGCalDate(iso: string): string {
   return iso.replace(/[-:.]/g, '').slice(0, 15) + 'Z';
@@ -25,8 +26,18 @@ export const dynamic = 'force-dynamic';
 
 export default async function EventDetailPage({ params }: { params: { id: string } }) {
   const { locale, t } = getServerMessages();
-  const { events } = await fetchPortalData();
-  const event = events.find((item) => item.id === decodeURIComponent(params.id));
+
+  const [internal, fbEvents, gEvents] = await Promise.allSettled([
+    getInternalEvents(),
+    fetchFacebookEvents(),
+    fetchGoogleCalendarEvents(),
+  ]);
+  const allEvents = [
+    ...(internal.status === 'fulfilled' ? internal.value : []),
+    ...(fbEvents.status === 'fulfilled' ? fbEvents.value : []),
+    ...(gEvents.status === 'fulfilled' ? gEvents.value : []),
+  ];
+  const event = allEvents.find((item) => item.id === decodeURIComponent(params.id));
 
   if (!event) {
     notFound();
