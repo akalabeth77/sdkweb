@@ -1,11 +1,15 @@
 import { Tabs } from 'expo-router';
 import { Text } from 'react-native';
+import { useAuth } from '@/lib/auth-context';
 
 function Icon({ emoji }: { emoji: string }) {
   return <Text style={{ fontSize: 22 }}>{emoji}</Text>;
 }
 
 export default function TabsLayout() {
+  const { user } = useAuth();
+  const isAdminOrEditor = user?.role === 'admin' || user?.role === 'editor';
+
   return (
     <Tabs
       screenOptions={{
@@ -28,6 +32,14 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="gallery"
         options={{ title: 'Galéria', tabBarIcon: () => <Icon emoji="🖼️" /> }}
+      />
+      <Tabs.Screen
+        name="admin"
+        options={{
+          title: 'Admin',
+          href: isAdminOrEditor ? undefined : null,
+          tabBarIcon: () => <Icon emoji="⚙️" />,
+        }}
       />
       <Tabs.Screen
         name="profile"

@@ -1,15 +1,22 @@
 {
   "expo": {
-    "name": "Swing Dance Kosice",
+    "name": "KESwing",
     "slug": "swing-dance-kosice",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "scheme": "sdkapp",
+    "icon": "./assets/icon.jpg",
+    "splash": {
+      "image": "./assets/icon.jpg",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
     "android": {
       "package": "com.swingdancekosice.app",
       "adaptiveIcon": {
-        "backgroundColor": "#1a1a2e"
+        "foregroundImage": "./assets/icon.jpg",
+        "backgroundColor": "#ffffff"
       }
     },
     "ios": {

@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Stack, router } from 'expo-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from '@/lib/auth-context';
+import { requestAndRegisterPushToken } from '@/lib/notifications';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -16,6 +17,7 @@ function RootNavigator() {
     if (loading) return;
     if (user) {
       router.replace('/(tabs)');
+      void requestAndRegisterPushToken();
     } else {
       router.replace('/(auth)/login');
     }

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { fetchFacebookEvents, fetchGoogleCalendarEvents } from '@/lib/social';
 import { getInternalEvents, saveInternalEvent } from '@/lib/store';
 import { isEditorOrAdminSession } from '@/lib/auth-utils';
+import { notifyAllDevices } from '@/lib/push';
 
 const weekdaySchema = z.enum(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']);
 const categorySchema = z.enum(['course', 'dance-party', 'workshop', 'festival', 'concert', 'other']);
@@ -106,6 +107,7 @@ export async function POST(request: Request) {
         source: parsed.data.isInternal ? 'internal' : 'external',
       });
 
+      void notifyAllDevices('Nový event', parsed.data.title, { type: 'event' });
       return NextResponse.json({ ok: true });
     }
 

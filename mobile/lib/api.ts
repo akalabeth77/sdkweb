@@ -1,6 +1,15 @@
 import { getToken } from './storage';
 import type { AppUser, Article, EventItem, MediaItem } from './types';
 
+export type PendingUser = {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  status: string;
+  createdAt: string;
+};
+
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'https://sdkweb.vercel.app';
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
@@ -51,5 +60,35 @@ export const api = {
         method: 'POST',
         body: JSON.stringify({ platform, pushToken }),
       }),
+  },
+  admin: {
+    events: {
+      list: () => request<{ events: EventItem[] }>('/api/mobile/admin/events'),
+      create: (data: {
+        title: string;
+        description?: string;
+        category: string;
+        start: string;
+        end?: string;
+        location?: string;
+      }) =>
+        request<{ ok: true }>('/api/mobile/admin/events', {
+          method: 'POST',
+          body: JSON.stringify(data),
+        }),
+    },
+    users: {
+      listPending: () => request<{ users: PendingUser[] }>('/api/mobile/admin/users'),
+      approve: (id: string) =>
+        request<{ ok: true }>(`/api/mobile/admin/users/${id}`, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'approve' }),
+        }),
+      reject: (id: string) =>
+        request<{ ok: true }>(`/api/mobile/admin/users/${id}`, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'reject' }),
+        }),
+    },
   },
 };
