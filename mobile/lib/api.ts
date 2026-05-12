@@ -35,6 +35,12 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 export const api = {
   events: {
     list: () => request<{ events: EventItem[] }>('/api/public/events'),
+    registrationStatus: (id: string) =>
+      request<{ status: string | null }>(`/api/mobile/events/${id}/register`),
+    register: (id: string) =>
+      request<{ ok: true }>(`/api/mobile/events/${id}/register`, { method: 'POST' }),
+    cancel: (id: string) =>
+      request<{ ok: true }>(`/api/mobile/events/${id}/register`, { method: 'DELETE' }),
   },
   articles: {
     list: () => request<{ articles: Article[] }>('/api/public/articles'),

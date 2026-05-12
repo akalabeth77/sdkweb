@@ -1,10 +1,8 @@
 import { View, Text, FlatList, StyleSheet, RefreshControl, TouchableOpacity } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
-import * as WebBrowser from 'expo-web-browser';
+import { router } from 'expo-router';
 import { api } from '@/lib/api';
 import type { Article } from '@/lib/types';
-
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'https://sdkweb.vercel.app';
 
 export default function ArticlesScreen() {
   const { data, isLoading, isError, refetch, isRefetching } = useQuery({
@@ -30,7 +28,7 @@ export default function ArticlesScreen() {
       refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="#1a1a2e" />}
       ListEmptyComponent={<Text style={styles.empty}>Žiadne publikované články.</Text>}
       renderItem={({ item }) => (
-        <TouchableOpacity onPress={() => void WebBrowser.openBrowserAsync(`${BASE_URL}/articles/${item.slug ?? item.id}`)}>
+        <TouchableOpacity onPress={() => router.push(`/article/${item.id}` as never)}>
           <ArticleCard article={item} />
         </TouchableOpacity>
       )}
