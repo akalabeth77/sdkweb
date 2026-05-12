@@ -403,6 +403,7 @@ export async function getInternalEvents(): Promise<EventItem[]> {
       start: row.start.toISOString(),
       end: row.end?.toISOString(),
       location: row.location ?? undefined,
+      registrationUrl: (row as any).registrationUrl ?? undefined,
       recurrenceGroupId: row.recurrenceGroupId ?? undefined,
       source: mapEventSource(row.source),
     }));
@@ -453,9 +454,10 @@ export async function saveInternalEvent(
         start: new Date(event.start),
         end: event.end ? new Date(event.end) : null,
         location: event.location,
+        registrationUrl: event.registrationUrl ?? null,
         recurrenceGroupId: event.recurrenceGroupId,
         source: event.source ?? 'internal',
-      },
+      } as any,
     });
   } catch (error) {
     if (getPrismaErrorCode(error) === 'P2021') {
@@ -482,8 +484,9 @@ export async function updateInternalEvent(
         start: new Date(event.start),
         end: event.end ? new Date(event.end) : null,
         location: event.location,
+        registrationUrl: event.registrationUrl ?? null,
         source: event.source ?? 'internal',
-      },
+      } as any,
     });
   } catch (error) {
     if (getPrismaErrorCode(error) === 'P2021') {

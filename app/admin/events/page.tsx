@@ -14,6 +14,7 @@ type EventForm = {
   start: string;
   end?: string;
   location?: string;
+  registrationUrl?: string;
   isInternal?: boolean;
   applyToSeries?: boolean;
 };
@@ -110,6 +111,7 @@ function EditableEventCard({
   const [start, setStart] = useState(toDatetimeLocal(item.start));
   const [end, setEnd] = useState(item.end ? toDatetimeLocal(item.end) : '');
   const [location, setLocation] = useState(item.location ?? '');
+  const [registrationUrl, setRegistrationUrl] = useState(item.registrationUrl ?? '');
   const [isInternal, setIsInternal] = useState(item.source === 'internal');
   const [applyToSeries, setApplyToSeries] = useState(false);
   const { locale, t } = useLanguage();
@@ -135,6 +137,7 @@ function EditableEventCard({
           start: new Date(start).toISOString(),
           end: end ? new Date(end).toISOString() : undefined,
           location: location || undefined,
+          registrationUrl: registrationUrl || undefined,
           isInternal,
           applyToSeries,
         });
@@ -162,6 +165,9 @@ function EditableEventCard({
       </label>
       <label>{t.admin.eventLocation}
         <input value={location} onChange={(event) => setLocation(event.target.value)} />
+      </label>
+      <label>Registračný odkaz
+        <input type="url" value={registrationUrl} onChange={(event) => setRegistrationUrl(event.target.value)} placeholder="https://forms.gle/..." />
       </label>
       <label>
         <input type="checkbox" checked={isInternal} onChange={(event) => setIsInternal(event.target.checked)} />
@@ -270,6 +276,7 @@ export default function AdminEventsPage() {
         start: formData.get('start'),
         end: formData.get('end'),
         location: formData.get('location'),
+        registrationUrl: formData.get('registrationUrl') || undefined,
         isInternal: newEventInternal,
         repeat: repeatEnabled,
         repeatUntil: repeatEnabled ? repeatUntil : '',
@@ -350,6 +357,9 @@ export default function AdminEventsPage() {
         <label>{t.admin.eventStart}<input name="start" type="datetime-local" required /></label>
         <label>{t.admin.eventEnd}<input name="end" type="datetime-local" /></label>
         <label>{t.admin.eventLocation}<input name="location" /></label>
+        <label>Registračný odkaz (Google Form, Eventbrite, ...)
+          <input name="registrationUrl" type="url" placeholder="https://forms.gle/..." />
+        </label>
         <label>
           <input type="checkbox" checked={newEventInternal} onChange={(event: ChangeEvent<HTMLInputElement>) => setNewEventInternal(event.target.checked)} />
           {' '}

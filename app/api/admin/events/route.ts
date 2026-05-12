@@ -15,6 +15,7 @@ const schema = z.object({
   start: z.string().min(1),
   end: z.string().optional().or(z.literal('')),
   location: z.string().optional().or(z.literal('')),
+  registrationUrl: z.string().url().optional().or(z.literal('')),
   isInternal: z.boolean().optional().default(true),
   repeat: z.boolean().optional().default(false),
   repeatUntil: z.string().optional().or(z.literal('')),
@@ -104,6 +105,7 @@ export async function POST(request: Request) {
         start: startIso,
         end: endIso,
         location: parsed.data.location || undefined,
+        registrationUrl: parsed.data.registrationUrl || undefined,
         source: parsed.data.isInternal ? 'internal' : 'external',
       });
 
@@ -164,6 +166,7 @@ export async function POST(request: Request) {
           start: occurrence.start.toISOString(),
           end: occurrence.end?.toISOString(),
           location: parsed.data.location || undefined,
+          registrationUrl: parsed.data.registrationUrl || undefined,
           source: parsed.data.isInternal ? 'internal' : 'external',
           recurrenceGroupId,
         })

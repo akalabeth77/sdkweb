@@ -71,6 +71,7 @@ export interface EventItem {
   start: string;
   end?: string;
   location?: string;
+  registrationUrl?: string;
   recurrenceGroupId?: string;
   source: 'facebook' | 'google' | 'internal' | 'external';
 }

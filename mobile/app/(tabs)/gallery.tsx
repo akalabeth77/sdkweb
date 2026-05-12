@@ -1,6 +1,7 @@
-import { View, Text, FlatList, StyleSheet, Dimensions, RefreshControl } from 'react-native';
+import { View, Text, FlatList, StyleSheet, Dimensions, RefreshControl, TouchableOpacity } from 'react-native';
 import { Image } from 'expo-image';
 import { useQuery } from '@tanstack/react-query';
+import * as WebBrowser from 'expo-web-browser';
 import { api } from '@/lib/api';
 import type { MediaItem } from '@/lib/types';
 
@@ -40,7 +41,9 @@ export default function GalleryScreen() {
 }
 
 function GalleryItem({ item }: { item: MediaItem }) {
-  return (
+  const openUrl = item.linkUrl ?? null;
+
+  const content = (
     <View style={styles.item}>
       <Image
         source={{ uri: item.imageUrl }}
@@ -52,7 +55,20 @@ function GalleryItem({ item }: { item: MediaItem }) {
       {item.caption ? (
         <Text style={styles.caption} numberOfLines={1}>{item.caption}</Text>
       ) : null}
+      {openUrl ? (
+        <View style={styles.linkBadge}>
+          <Text style={styles.linkBadgeText}>↗</Text>
+        </View>
+      ) : null}
     </View>
+  );
+
+  if (!openUrl) return content;
+
+  return (
+    <TouchableOpacity onPress={() => void WebBrowser.openBrowserAsync(openUrl)} activeOpacity={0.8}>
+      {content}
+    </TouchableOpacity>
   );
 }
 
@@ -65,4 +81,16 @@ const styles = StyleSheet.create({
   item: { width: ITEM_SIZE },
   image: { width: ITEM_SIZE, height: ITEM_SIZE, borderRadius: 10 },
   caption: { fontSize: 11, color: '#666', marginTop: 4, textAlign: 'center' },
+  linkBadge: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  linkBadgeText: { color: '#fff', fontSize: 13, fontWeight: '700' },
 });

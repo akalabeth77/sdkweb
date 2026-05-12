@@ -135,6 +135,7 @@ model InternalEvent {
   end       DateTime?
   location  String?
   source    String   @default("internal")
+  registrationUrl String?
   recurrenceGroupId String?
   createdAt DateTime @default(now())
 

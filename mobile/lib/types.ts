@@ -39,6 +39,19 @@ export interface MediaItem {
   caption?: string;
   albumTitle?: string;
   source: string;
+  linkUrl?: string;
+}
+
+export interface EventItem {
+  id: string;
+  title: string;
+  description?: string;
+  category?: string;
+  start: string;
+  end?: string;
+  location?: string;
+  registrationUrl?: string;
+  source: string;
 }
 
 export interface AppUser {

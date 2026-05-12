@@ -1,12 +1,11 @@
 import {
   View, Text, FlatList, StyleSheet, RefreshControl,
-  TouchableOpacity, ScrollView, Share, Alert,
+  TouchableOpacity, ScrollView, Share,
 } from 'react-native';
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import * as WebBrowser from 'expo-web-browser';
 import { api } from '@/lib/api';
-import { useAuth } from '@/lib/auth-context';
 import type { EventItem } from '@/lib/types';
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'https://sdkweb.vercel.app';
@@ -47,7 +46,6 @@ const FILTERS = [
 
 export default function EventsScreen() {
   const [activeFilter, setActiveFilter] = useState('all');
-  const { user } = useAuth();
   const { data, isLoading, isError, refetch, isRefetching } = useQuery({
     queryKey: ['events'],
     queryFn: () => api.events.list(),
@@ -93,23 +91,14 @@ export default function EventsScreen() {
         refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="#1a1a2e" />}
         ListEmptyComponent={<Text style={styles.empty}>Žiadne eventy v tejto kategórii.</Text>}
         renderItem={({ item }) => (
-          <EventCard event={item} isLoggedIn={!!user} isInternal={item.source === 'internal'} />
+          <EventCard event={item} />
         )}
       />
     </View>
   );
 }
 
-function EventCard({
-  event,
-  isLoggedIn,
-  isInternal,
-}: {
-  event: EventItem;
-  isLoggedIn: boolean;
-  isInternal: boolean;
-}) {
-  const qc = useQueryClient();
+function EventCard({ event }: { event: EventItem }) {
   const cat = event.category ?? 'other';
   const color = CATEGORY_COLOR[cat] ?? '#6b7280';
   const label = CATEGORY_LABEL[cat] ?? 'Iné';
@@ -117,17 +106,6 @@ function EventCard({
   const dateStr = d.toLocaleDateString('sk-SK', { weekday: 'long', day: 'numeric', month: 'long' });
   const timeStr = d.toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' });
   const eventUrl = `${BASE_URL}/events/${encodeURIComponent(event.id)}`;
-
-  const { mutate: register, isPending: registering } = useMutation({
-    mutationFn: () => api.events.register(event.id),
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ['events'] });
-      Alert.alert('Registrácia potvrdená', `Si prihlásený na event:\n${event.title}`);
-    },
-    onError: (err) => {
-      Alert.alert('Chyba', err instanceof Error ? err.message : 'Registrácia zlyhala.');
-    },
-  });
 
   function handleShare() {
     void Share.share({
@@ -167,15 +145,12 @@ function EventCard({
           <Text style={styles.calBtnText}>📅 Pridať do kalendára</Text>
         </TouchableOpacity>
 
-        {isLoggedIn && isInternal ? (
+        {event.registrationUrl ? (
           <TouchableOpacity
-            style={[styles.registerBtn, registering && styles.registerBtnDisabled]}
-            onPress={() => register()}
-            disabled={registering}
+            style={styles.registerBtn}
+            onPress={() => void WebBrowser.openBrowserAsync(event.registrationUrl!)}
           >
-            <Text style={styles.registerBtnText}>
-              {registering ? 'Prihlasujem…' : '✓ Prihlásiť sa'}
-            </Text>
+            <Text style={styles.registerBtnText}>✍️ Registrovať sa</Text>
           </TouchableOpacity>
         ) : null}
       </View>
