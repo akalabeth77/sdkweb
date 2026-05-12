@@ -45,7 +45,8 @@ export async function POST(request: Request) {
     });
     return NextResponse.json({ ok: true });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unable to save gallery album';
+    const message = error instanceof Error ? error.message : String(error);
+    console.error('[gallery-albums POST]', message);
     return NextResponse.json({ error: message }, { status: 503 });
   }
 }
