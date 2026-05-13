@@ -22,7 +22,7 @@ export default function DownloadPage() {
       </p>
 
       <a
-        href="https://github.com/akalabeth77/sdkweb/releases/download/v1.0.1/keswing.apk"
+        href="https://github.com/akalabeth77/sdkweb/releases/download/v1.0.2/keswing.apk"
         rel="noreferrer"
         style={{
           display: 'inline-flex',
@@ -38,13 +38,13 @@ export default function DownloadPage() {
           marginBottom: '1rem',
         }}
       >
-        📱 {isSk ? 'Stiahnuť pre Android (135 MB)' : 'Download for Android (135 MB)'}
+        📱 {isSk ? 'Stiahnuť pre Android (22 MB)' : 'Download for Android (22 MB)'}
       </a>
 
       <p className="small" style={{ color: '#888', marginTop: '0.5rem' }}>
         {isSk
-          ? '⚠️ Veľký súbor (135 MB) — odporúčame sťahovať cez Wi-Fi.'
-          : '⚠️ Large file (135 MB) — recommended to download over Wi-Fi.'}
+          ? 'Verzia 1.0.2 · 22 MB · arm64 (moderné Android telefóny)'
+          : 'Version 1.0.2 · 22 MB · arm64 (modern Android phones)'}
       </p>
       <p className="small" style={{ color: '#888', marginTop: '0.25rem' }}>
         {isSk
