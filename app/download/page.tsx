@@ -22,7 +22,7 @@ export default function DownloadPage() {
       </p>
 
       <a
-        href="/downloads/keswing.apk"
+        href="https://github.com/akalabeth77/sdkweb/releases/latest/download/keswing.apk"
         download="KESwing.apk"
         style={{
           display: 'inline-flex',
