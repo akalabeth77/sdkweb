@@ -20,6 +20,7 @@ export function Navigation() {
       <Link href="/events">{t.nav.events}</Link>
       <Link href="/gallery">{t.nav.gallery}</Link>
       <Link href="/articles">{t.nav.articles}</Link>
+      <Link href="/music">🎵 Hudba</Link>
       {isAuthenticated ? (
         <>
           <span style={{ fontSize: '0.9rem', color: '#666', opacity: 0.8 }}>👤 {userName}</span>
@@ -28,6 +29,7 @@ export function Navigation() {
           <Link href="/admin/events">{t.nav.eventEditor}</Link>
           <Link href="/admin/gallery">{t.nav.galleryEditor}</Link>
           {isAdmin ? <Link href="/admin/users">{t.nav.userApproval}</Link> : null}
+          <Link href="/profile/settings">⚙️ Nastavenia</Link>
           <button type="button" onClick={() => void signOut({ callbackUrl: '/' })}>{t.nav.logout}</button>
         </>
       ) : (

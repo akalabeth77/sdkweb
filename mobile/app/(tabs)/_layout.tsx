@@ -34,6 +34,10 @@ export default function TabsLayout() {
         options={{ title: 'Galéria', tabBarIcon: () => <Icon emoji="🖼️" /> }}
       />
       <Tabs.Screen
+        name="music"
+        options={{ title: 'Hudba', tabBarIcon: () => <Icon emoji="🎵" /> }}
+      />
+      <Tabs.Screen
         name="admin"
         options={{
           title: 'Admin',

@@ -136,6 +136,7 @@ model InternalEvent {
   location  String?
   source    String   @default("internal")
   registrationUrl String?
+  hasRegistrationForm Boolean @default(false)
   recurrenceGroupId String?
   createdAt DateTime @default(now())
 
@@ -183,4 +184,28 @@ model GalleryAlbum {
   createdAt  DateTime @default(now())
 
   @@map("gallery_albums")
+}
+
+model SpotifyPlaylist {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  spotifyUrl  String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  @@map("spotify_playlists")
+}
+
+model EventFormSubmission {
+  id        String   @id @default(cuid())
+  eventId   String
+  name      String
+  email     String
+  phone     String?
+  notes     String?
+  createdAt DateTime @default(now())
+
+  @@index([eventId, createdAt])
+  @@map("event_form_submissions")
 }

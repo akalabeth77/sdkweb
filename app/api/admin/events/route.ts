@@ -4,6 +4,7 @@ import { fetchFacebookEvents, fetchGoogleCalendarEvents } from '@/lib/social';
 import { getInternalEvents, saveInternalEvent } from '@/lib/store';
 import { isEditorOrAdminSession } from '@/lib/auth-utils';
 import { notifyAllDevices } from '@/lib/push';
+import { notifyNewEvent } from '@/lib/email';
 
 const weekdaySchema = z.enum(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']);
 const categorySchema = z.enum(['course', 'dance-party', 'workshop', 'festival', 'concert', 'other']);
@@ -16,6 +17,7 @@ const schema = z.object({
   end: z.string().optional().or(z.literal('')),
   location: z.string().optional().or(z.literal('')),
   registrationUrl: z.string().url().optional().or(z.literal('')),
+  hasRegistrationForm: z.boolean().optional().default(false),
   isInternal: z.boolean().optional().default(true),
   repeat: z.boolean().optional().default(false),
   repeatUntil: z.string().optional().or(z.literal('')),
@@ -106,10 +108,12 @@ export async function POST(request: Request) {
         end: endIso,
         location: parsed.data.location || undefined,
         registrationUrl: parsed.data.registrationUrl || undefined,
+        hasRegistrationForm: parsed.data.hasRegistrationForm,
         source: parsed.data.isInternal ? 'internal' : 'external',
       });
 
       void notifyAllDevices('Nový event', parsed.data.title, { type: 'event' });
+      void notifyNewEvent(parsed.data.title, crypto.randomUUID());
       return NextResponse.json({ ok: true });
     }
 

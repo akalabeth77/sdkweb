@@ -1,5 +1,5 @@
 import { getToken } from './storage';
-import type { AppUser, Article, EventItem, MediaItem } from './types';
+import type { AppUser, Article, EventItem, MediaItem, SpotifyPlaylist, UserPreferences } from './types';
 
 export type PendingUser = {
   id: string;
@@ -65,6 +65,17 @@ export const api = {
       request<{ ok: true }>('/api/mobile/devices', {
         method: 'POST',
         body: JSON.stringify({ platform, pushToken }),
+      }),
+  },
+  music: {
+    list: () => request<{ playlists: SpotifyPlaylist[] }>('/api/public/music'),
+  },
+  preferences: {
+    get: () => request<UserPreferences>('/api/user/preferences'),
+    update: (data: UserPreferences) =>
+      request<{ ok: true }>('/api/user/preferences', {
+        method: 'PUT',
+        body: JSON.stringify(data),
       }),
   },
   admin: {

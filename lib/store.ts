@@ -404,6 +404,7 @@ export async function getInternalEvents(): Promise<EventItem[]> {
       end: row.end?.toISOString(),
       location: row.location ?? undefined,
       registrationUrl: (row as any).registrationUrl ?? undefined,
+      hasRegistrationForm: (row as any).hasRegistrationForm ?? false,
       recurrenceGroupId: row.recurrenceGroupId ?? undefined,
       source: mapEventSource(row.source),
     }));
@@ -455,6 +456,7 @@ export async function saveInternalEvent(
         end: event.end ? new Date(event.end) : null,
         location: event.location,
         registrationUrl: event.registrationUrl ?? null,
+        hasRegistrationForm: (event as any).hasRegistrationForm ?? false,
         recurrenceGroupId: event.recurrenceGroupId,
         source: event.source ?? 'internal',
       } as any,
@@ -485,6 +487,7 @@ export async function updateInternalEvent(
         end: event.end ? new Date(event.end) : null,
         location: event.location,
         registrationUrl: event.registrationUrl ?? null,
+        hasRegistrationForm: (event as any).hasRegistrationForm ?? false,
         source: event.source ?? 'internal',
       } as any,
     });
@@ -950,4 +953,69 @@ export async function deleteUserDevice(userId: string, pushToken: string): Promi
   });
 
   return result.count;
+}
+
+export type SpotifyPlaylistRecord = {
+  id: string;
+  title: string;
+  description?: string;
+  spotifyUrl: string;
+  isActive: boolean;
+  createdAt: string;
+};
+
+export async function getSpotifyPlaylists(): Promise<SpotifyPlaylistRecord[]> {
+  if (!process.env.DATABASE_URL) return [];
+  try {
+    const rows = await (prisma as any).spotifyPlaylist.findMany({ orderBy: { createdAt: 'desc' } });
+    return rows.map((r: any) => ({
+      id: r.id, title: r.title, description: r.description ?? undefined,
+      spotifyUrl: r.spotifyUrl, isActive: r.isActive, createdAt: r.createdAt.toISOString(),
+    }));
+  } catch { return []; }
+}
+
+export async function saveSpotifyPlaylist(data: Omit<SpotifyPlaylistRecord, 'createdAt'>): Promise<void> {
+  ensureDatabaseConfigured();
+  await (prisma as any).spotifyPlaylist.create({
+    data: { id: data.id, title: data.title, description: data.description ?? null, spotifyUrl: data.spotifyUrl, isActive: data.isActive },
+  });
+}
+
+export async function updateSpotifyPlaylist(id: string, data: Omit<SpotifyPlaylistRecord, 'id' | 'createdAt'>): Promise<void> {
+  ensureDatabaseConfigured();
+  await (prisma as any).spotifyPlaylist.update({
+    where: { id },
+    data: { title: data.title, description: data.description ?? null, spotifyUrl: data.spotifyUrl, isActive: data.isActive },
+  });
+}
+
+export async function deleteSpotifyPlaylist(id: string): Promise<void> {
+  ensureDatabaseConfigured();
+  await (prisma as any).spotifyPlaylist.delete({ where: { id } });
+}
+
+export type EventFormSubmissionRecord = {
+  id: string;
+  eventId: string;
+  name: string;
+  email: string;
+  phone?: string;
+  notes?: string;
+  createdAt: string;
+};
+
+export async function saveEventFormSubmission(data: Omit<EventFormSubmissionRecord, 'id' | 'createdAt'>): Promise<void> {
+  ensureDatabaseConfigured();
+  await (prisma as any).eventFormSubmission.create({
+    data: { id: crypto.randomUUID(), eventId: data.eventId, name: data.name, email: data.email, phone: data.phone ?? null, notes: data.notes ?? null },
+  });
+}
+
+export async function getEventFormSubmissions(eventId: string): Promise<EventFormSubmissionRecord[]> {
+  ensureDatabaseConfigured();
+  try {
+    const rows = await (prisma as any).eventFormSubmission.findMany({ where: { eventId }, orderBy: { createdAt: 'desc' } });
+    return rows.map((r: any) => ({ id: r.id, eventId: r.eventId, name: r.name, email: r.email, phone: r.phone ?? undefined, notes: r.notes ?? undefined, createdAt: r.createdAt.toISOString() }));
+  } catch { return []; }
 }

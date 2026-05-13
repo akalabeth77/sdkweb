@@ -19,6 +19,7 @@ const schema = z.object({
   end: z.string().optional().or(z.literal('')),
   location: z.string().optional().or(z.literal('')),
   registrationUrl: z.string().url().optional().or(z.literal('')),
+  hasRegistrationForm: z.boolean().optional().default(false),
   isInternal: z.boolean().optional().default(true),
   applyToSeries: z.boolean().optional().default(false),
 });

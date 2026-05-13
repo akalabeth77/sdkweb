@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getInternalMedia, saveInternalMedia } from '@/lib/store';
 import { isEditorOrAdminSession } from '@/lib/auth-utils';
+import { notifyNewGallery } from '@/lib/email';
 
 const schema = z.object({
   imageUrl: z.string().url(),
@@ -40,6 +41,7 @@ export async function POST(request: Request) {
       caption: parsed.data.caption || undefined,
     });
 
+    void notifyNewGallery();
     return NextResponse.json({ ok: true });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unable to save media';

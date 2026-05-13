@@ -18,6 +18,7 @@ export default async function AdminDashboardPage() {
         <Link href="/admin/gallery" className="card">{t.nav.galleryEditor}</Link>
         {isAdmin ? <Link href="/admin/users" className="card">{t.nav.userApproval}</Link> : null}
         <Link href="/admin/push" className="card">📲 Push notifikácie</Link>
+        <Link href="/admin/music" className="card">🎵 Hudba / Spotify</Link>
       </div>
     </section>
   );

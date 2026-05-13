@@ -15,6 +15,7 @@ type EventForm = {
   end?: string;
   location?: string;
   registrationUrl?: string;
+  hasRegistrationForm?: boolean;
   isInternal?: boolean;
   applyToSeries?: boolean;
 };
@@ -112,6 +113,7 @@ function EditableEventCard({
   const [end, setEnd] = useState(item.end ? toDatetimeLocal(item.end) : '');
   const [location, setLocation] = useState(item.location ?? '');
   const [registrationUrl, setRegistrationUrl] = useState(item.registrationUrl ?? '');
+  const [hasRegistrationForm, setHasRegistrationForm] = useState((item as any).hasRegistrationForm ?? false);
   const [isInternal, setIsInternal] = useState(item.source === 'internal');
   const [applyToSeries, setApplyToSeries] = useState(false);
   const { locale, t } = useLanguage();
@@ -138,6 +140,7 @@ function EditableEventCard({
           end: end ? new Date(end).toISOString() : undefined,
           location: location || undefined,
           registrationUrl: registrationUrl || undefined,
+          hasRegistrationForm,
           isInternal,
           applyToSeries,
         });
@@ -170,6 +173,10 @@ function EditableEventCard({
         <input type="url" value={registrationUrl} onChange={(event) => setRegistrationUrl(event.target.value)} placeholder="https://forms.gle/..." />
       </label>
       <label>
+        <input type="checkbox" checked={hasRegistrationForm} onChange={(event) => setHasRegistrationForm(event.target.checked)} />
+        {' '}Aktivovať registračný formulár (vbudovaný)
+      </label>
+      <label>
         <input type="checkbox" checked={isInternal} onChange={(event) => setIsInternal(event.target.checked)} />
         {' '}
         {t.admin.internalEvent}
@@ -189,6 +196,59 @@ function EditableEventCard({
         ) : null}
       </div>
     </form>
+  );
+}
+
+function groupEventsBySeries(events: EventItem[]) {
+  const groups = new Map<string, EventItem[]>();
+  const singles: EventItem[] = [];
+  for (const event of events) {
+    if (event.recurrenceGroupId) {
+      const arr = groups.get(event.recurrenceGroupId) ?? [];
+      arr.push(event);
+      groups.set(event.recurrenceGroupId, arr);
+    } else {
+      singles.push(event);
+    }
+  }
+  return { groups, singles };
+}
+
+function RecurringEventGroup({
+  events,
+  onSave,
+  onDelete,
+}: {
+  events: EventItem[];
+  onSave: (id: string, data: EventForm) => Promise<void>;
+  onDelete: (id: string, deleteSeries?: boolean) => Promise<void>;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const first = events[0];
+  const last = events[events.length - 1];
+  const { t } = useLanguage();
+
+  return (
+    <div className="card">
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        style={{ background: 'none', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'left', padding: 0 }}
+      >
+        <strong>{first.title}</strong>
+        <span className="small">
+          {' '}· {events.length}× opakovanie · {new Date(first.start).toLocaleDateString('sk-SK')} – {new Date(last.start).toLocaleDateString('sk-SK')}
+        </span>
+        <span style={{ float: 'right' }}>{expanded ? '▲' : '▼'}</span>
+      </button>
+      {expanded && (
+        <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {events.map((event) => (
+            <EditableEventCard key={event.id} item={event} onSave={onSave} onDelete={onDelete} />
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -277,6 +337,7 @@ export default function AdminEventsPage() {
         end: formData.get('end'),
         location: formData.get('location'),
         registrationUrl: formData.get('registrationUrl') || undefined,
+        hasRegistrationForm: formData.get('hasRegistrationForm') === 'on',
         isInternal: newEventInternal,
         repeat: repeatEnabled,
         repeatUntil: repeatEnabled ? repeatUntil : '',
@@ -361,6 +422,10 @@ export default function AdminEventsPage() {
           <input name="registrationUrl" type="url" placeholder="https://forms.gle/..." />
         </label>
         <label>
+          <input type="checkbox" name="hasRegistrationForm" />
+          {' '}Aktivovať registračný formulár (vbudovaný)
+        </label>
+        <label>
           <input type="checkbox" checked={newEventInternal} onChange={(event: ChangeEvent<HTMLInputElement>) => setNewEventInternal(event.target.checked)} />
           {' '}
           {t.admin.internalEvent}
@@ -400,13 +465,24 @@ export default function AdminEventsPage() {
       <h2 style={{ marginTop: '1.5rem' }}>{t.admin.existingEvents}</h2>
       {events.length === 0 ? (
         <p className="small">{t.admin.noEventsFound}</p>
-      ) : (
-        <div className="grid" style={{ gap: '1rem' }}>
-          {events.map((eventItem) => (
-            <EditableEventCard key={eventItem.id} item={eventItem} onSave={updateEvent} onDelete={deleteEvent} />
-          ))}
-        </div>
-      )}
+      ) : (() => {
+        const { groups, singles } = groupEventsBySeries(events);
+        return (
+          <div className="grid" style={{ gap: '1rem' }}>
+            {singles.map((eventItem) => (
+              <EditableEventCard key={eventItem.id} item={eventItem} onSave={updateEvent} onDelete={deleteEvent} />
+            ))}
+            {[...groups.values()].map((groupEvents) => (
+              <RecurringEventGroup
+                key={groupEvents[0].recurrenceGroupId}
+                events={groupEvents}
+                onSave={updateEvent}
+                onDelete={deleteEvent}
+              />
+            ))}
+          </div>
+        );
+      })()}
 
       <h2 style={{ marginTop: '1.5rem' }}>{t.admin.externalEvents}</h2>
       <p className="small">{t.admin.externalEventsDescription}</p>

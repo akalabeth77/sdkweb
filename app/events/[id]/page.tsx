@@ -59,6 +59,15 @@ export default async function EventDetailPage({ params }: { params: { id: string
       {event.description ? <div className="article-content"><p>{event.description}</p></div> : null}
 
       <div className="mt-6">
+        {(event as any).hasRegistrationForm ? (
+          <Link
+            href={`/events/${encodeURIComponent(event.id)}/register`}
+            className="share-link share-btn"
+            style={{ display: 'inline-block', marginBottom: '0.5rem' }}
+          >
+            ✍️ {locale === 'sk' ? 'Registrovať sa' : 'Register'}
+          </Link>
+        ) : null}
         {event.registrationUrl ? (
           <a
             href={event.registrationUrl}

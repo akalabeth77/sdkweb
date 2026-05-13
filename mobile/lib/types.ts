@@ -12,11 +12,12 @@ export interface EventItem {
   id: string;
   title: string;
   description?: string;
-  category?: EventCategory;
+  category?: string;
   start: string;
   end?: string;
   location?: string;
-  source: 'facebook' | 'google' | 'internal' | 'external';
+  registrationUrl?: string;
+  source: string;
 }
 
 export interface Article {
@@ -42,21 +43,23 @@ export interface MediaItem {
   linkUrl?: string;
 }
 
-export interface EventItem {
-  id: string;
-  title: string;
-  description?: string;
-  category?: string;
-  start: string;
-  end?: string;
-  location?: string;
-  registrationUrl?: string;
-  source: string;
-}
-
 export interface AppUser {
   id: string;
   email: string;
   name: string;
   role: UserRole;
+}
+
+export interface SpotifyPlaylist {
+  id: string;
+  title: string;
+  description?: string;
+  spotifyUrl: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface UserPreferences {
+  emailNotifications: boolean;
+  pushNotifications: boolean;
 }

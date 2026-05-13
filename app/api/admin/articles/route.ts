@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { getArticles, saveArticle } from '@/lib/store';
 import { extractPlainText, normalizeArticleHtml } from '@/lib/article-content';
 import { isEditorOrAdminSession } from '@/lib/auth-utils';
+import { notifyNewArticle } from '@/lib/email';
 
 const createSchema = z.object({
   title: z.string().min(3),
@@ -61,6 +62,10 @@ export async function POST(request: Request) {
       author: 'Admin' // TODO: Get from session
     });
 
+    if (parsed.data.status === 'published') {
+      const slug = parsed.data.slug ?? parsed.data.title.toLowerCase().replace(/\s+/g, '-');
+      void notifyNewArticle(parsed.data.title, slug);
+    }
     return NextResponse.json({ ok: true });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unable to save article';
