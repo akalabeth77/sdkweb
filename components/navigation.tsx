@@ -21,6 +21,7 @@ export function Navigation() {
       <Link href="/gallery">{t.nav.gallery}</Link>
       <Link href="/articles">{t.nav.articles}</Link>
       <Link href="/music">🎵 Hudba</Link>
+      <Link href="/download">📱 Appka</Link>
       {isAuthenticated ? (
         <>
           <span style={{ fontSize: '0.9rem', color: '#666', opacity: 0.8 }}>👤 {userName}</span>
