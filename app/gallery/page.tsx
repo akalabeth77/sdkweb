@@ -6,7 +6,7 @@ import { authOptions } from '@/lib/auth';
 import Link from 'next/link';
 import { GalleryLightbox } from '@/components/gallery-lightbox';
 
-export const revalidate = 900;
+export const dynamic = 'force-dynamic';
 
 export default async function GalleryPage() {
   const { t } = getServerMessages();
