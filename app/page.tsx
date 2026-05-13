@@ -168,6 +168,17 @@ export default async function HomePage() {
         </div>
         <div className="card">
           <h2>{copy.eventsTitle}</h2>
+          {events.length > 0 && (() => {
+            const next = events[0];
+            const diff = new Date(next.start).getTime() - Date.now();
+            const days = Math.floor(diff / 86400000);
+            const hours = Math.floor((diff % 86400000) / 3600000);
+            return diff > 0 ? (
+              <div style={{ background: '#1a1a2e', color: '#fff', borderRadius: '10px', padding: '0.75rem 1rem', marginBottom: '1rem', fontSize: '0.9rem', fontWeight: 600 }}>
+                🎯 {isSk ? 'Najbližší event za' : 'Next event in'} {days > 0 ? `${days}d ` : ''}{hours}h — {next.title}
+              </div>
+            ) : null;
+          })()}
           {events.slice(0, 5).map((event) => {
             const d = new Date(event.start);
             const dateStr = d.toLocaleDateString(dateLocale, { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });

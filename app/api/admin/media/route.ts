@@ -6,7 +6,8 @@ import { notifyNewGallery } from '@/lib/email';
 
 const schema = z.object({
   imageUrl: z.string().url(),
-  caption: z.string().optional().or(z.literal(''))
+  caption: z.string().optional().or(z.literal('')),
+  visibility: z.enum(['public', 'members']).default('public'),
 });
 
 export async function GET() {
@@ -39,7 +40,8 @@ export async function POST(request: Request) {
       id: crypto.randomUUID(),
       imageUrl: parsed.data.imageUrl,
       caption: parsed.data.caption || undefined,
-    });
+      visibility: parsed.data.visibility,
+    } as any);
 
     void notifyNewGallery();
     return NextResponse.json({ ok: true });

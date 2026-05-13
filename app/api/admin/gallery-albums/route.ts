@@ -8,6 +8,7 @@ const schema = z.object({
   sourceType: z.enum(['instagram', 'instagram-embed', 'google-photos', 'google-drive', 'local-folder']),
   sourceRef: z.string().min(1),
   isActive: z.boolean().default(true),
+  visibility: z.enum(['public', 'members']).default('public'),
 });
 
 export async function GET() {
@@ -42,6 +43,7 @@ export async function POST(request: Request) {
       sourceType: parsed.data.sourceType,
       sourceRef: parsed.data.sourceRef,
       isActive: parsed.data.isActive,
+      visibility: parsed.data.visibility,
     });
     return NextResponse.json({ ok: true });
   } catch (error) {

@@ -1,10 +1,12 @@
-import { View, Text, FlatList, StyleSheet, RefreshControl, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, StyleSheet, RefreshControl, TouchableOpacity, Alert } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { api } from '@/lib/api';
+import { useAuth } from '@/lib/auth-context';
 import type { Article } from '@/lib/types';
 
 export default function ArticlesScreen() {
+  const { user } = useAuth();
   const { data, isLoading, isError, refetch, isRefetching } = useQuery({
     queryKey: ['articles'],
     queryFn: () => api.articles.list(),
@@ -27,24 +29,37 @@ export default function ArticlesScreen() {
       contentContainerStyle={styles.list}
       refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="#1a1a2e" />}
       ListEmptyComponent={<Text style={styles.empty}>Žiadne publikované články.</Text>}
-      renderItem={({ item }) => (
-        <TouchableOpacity onPress={() => router.push(`/article/${item.id}` as never)}>
-          <ArticleCard article={item} />
-        </TouchableOpacity>
-      )}
+      renderItem={({ item }) => {
+        const isLocked = (item as any).visibility === 'members' && !user;
+        return (
+          <TouchableOpacity
+            onPress={() => {
+              if (isLocked) {
+                Alert.alert('Len pre členov', 'Tento článok je dostupný len pre prihlásených používateľov.');
+                return;
+              }
+              router.push(`/article/${item.id}` as never);
+            }}
+          >
+            <ArticleCard article={item} isLocked={isLocked} />
+          </TouchableOpacity>
+        );
+      }}
     />
   );
 }
 
-function ArticleCard({ article }: { article: Article }) {
+function ArticleCard({ article, isLocked }: { article: Article; isLocked: boolean }) {
   const date = new Date(article.publishedAt ?? article.createdAt);
   const dateStr = date.toLocaleDateString('sk-SK', { day: 'numeric', month: 'long', year: 'numeric' });
 
   return (
-    <View style={styles.card}>
-      <Text style={styles.cardTitle}>{article.title}</Text>
+    <View style={[styles.card, isLocked && { opacity: 0.7 }]}>
+      <Text style={styles.cardTitle}>{isLocked ? '🔒 ' : ''}{article.title}</Text>
       <Text style={styles.cardMeta}>{article.author} · {dateStr}</Text>
-      {article.excerpt ? (
+      {isLocked ? (
+        <Text style={[styles.excerpt, { color: '#999', fontStyle: 'italic' }]}>Len pre prihlásených členov</Text>
+      ) : article.excerpt ? (
         <Text style={styles.excerpt} numberOfLines={3}>{article.excerpt}</Text>
       ) : null}
     </View>

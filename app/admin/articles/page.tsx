@@ -10,6 +10,7 @@ type ArticleForm = {
   title: string;
   content: string;
   status: 'draft' | 'published';
+  visibility: 'public' | 'members';
 };
 
 function initialEditorValue(value: string): string {
@@ -27,6 +28,7 @@ export default function AdminArticlesPage() {
   const [createTitle, setCreateTitle] = useState('');
   const [createContent, setCreateContent] = useState('<p></p>');
   const [createStatus, setCreateStatus] = useState<'draft' | 'published'>('draft');
+  const [createVisibility, setCreateVisibility] = useState<'public' | 'members'>('public');
   const { locale, t } = useLanguage();
 
   const loadArticles = useCallback(async () => {
@@ -58,6 +60,7 @@ export default function AdminArticlesPage() {
         title: createTitle,
         content: createContent,
         status: createStatus,
+        visibility: createVisibility,
       })
     });
 
@@ -66,6 +69,7 @@ export default function AdminArticlesPage() {
       setCreateTitle('');
       setCreateContent('<p></p>');
       setCreateStatus('draft');
+      setCreateVisibility('public');
       await loadArticles();
       return;
     }
@@ -120,6 +124,12 @@ export default function AdminArticlesPage() {
             <option value="published">{t.common.published}</option>
           </select>
         </label>
+        <label>Viditeľnosť
+          <select value={createVisibility} onChange={(e) => setCreateVisibility(e.target.value as 'public' | 'members')}>
+            <option value="public">🌐 Verejný</option>
+            <option value="members">🔒 Len pre členov</option>
+          </select>
+        </label>
         <button type="submit">{t.admin.createArticle}</button>
       </form>
 
@@ -157,6 +167,7 @@ function EditableArticleCard({
   const [title, setTitle] = useState(article.title);
   const [content, setContent] = useState(initialEditorValue(article.content));
   const [status, setStatus] = useState<'draft' | 'published'>(article.status);
+  const [visibility, setVisibility] = useState<'public' | 'members'>(article.visibility ?? 'public');
   const { locale, t } = useLanguage();
 
   return (
@@ -164,7 +175,7 @@ function EditableArticleCard({
       className="card"
       onSubmit={async (event) => {
         event.preventDefault();
-        await onSave(article.id, { title, content, status });
+        await onSave(article.id, { title, content, status, visibility });
       }}
     >
       <div className="small">{new Date(article.createdAt).toLocaleString(toDateLocale(locale))} · {getStatusLabel(locale, article.status)}</div>
@@ -178,6 +189,12 @@ function EditableArticleCard({
         <select value={status} onChange={(event) => setStatus(event.target.value as 'draft' | 'published')}>
           <option value="draft">{t.common.draft}</option>
           <option value="published">{t.common.published}</option>
+        </select>
+      </label>
+      <label>Viditeľnosť
+        <select value={visibility} onChange={(e) => setVisibility(e.target.value as 'public' | 'members')}>
+          <option value="public">🌐 Verejný</option>
+          <option value="members">🔒 Len pre členov</option>
         </select>
       </label>
       <button type="submit">{t.common.save}</button>

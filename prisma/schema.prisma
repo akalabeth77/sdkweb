@@ -20,6 +20,7 @@ model Article {
   publishedAt DateTime?
   updatedAt DateTime @default(now()) @updatedAt
   status    String   @default("draft")
+  visibility String  @default("public")
   views     Int      @default(0)
   category  ArticleCategory? @relation(fields: [categoryId], references: [id])
   categoryId String?
@@ -148,11 +149,12 @@ model InternalEvent {
 }
 
 model InternalMedia {
-  id        String   @id
-  imageUrl  String
-  caption   String?
-  source    String   @default("internal")
-  createdAt DateTime @default(now())
+  id         String   @id
+  imageUrl   String
+  caption    String?
+  source     String   @default("internal")
+  visibility String   @default("public")
+  createdAt  DateTime @default(now())
 
   @@map("internal_media")
 }
@@ -181,6 +183,7 @@ model GalleryAlbum {
   sourceType String
   sourceRef  String
   isActive   Boolean  @default(true)
+  visibility String   @default("public")
   createdAt  DateTime @default(now())
 
   @@map("gallery_albums")

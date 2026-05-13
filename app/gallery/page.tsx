@@ -1,79 +1,49 @@
 import { fetchPortalData } from '@/lib/social';
-import Image from 'next/image';
 import Script from 'next/script';
 import { getServerMessages } from '@/lib/i18n-server';
-import { getSourceLabel } from '@/lib/i18n';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import Link from 'next/link';
+import { GalleryLightbox } from '@/components/gallery-lightbox';
 
 export const revalidate = 900;
 
 export default async function GalleryPage() {
-  const { locale, t } = getServerMessages();
+  const { t } = getServerMessages();
+  const session = await getServerSession(authOptions);
+  const isLoggedIn = !!session?.user;
+
   const { media } = await fetchPortalData();
 
-  const items = media.length > 0
-    ? media.map((item) => ({
-      ...item,
-      caption: item.caption ?? 'Swing Dance Kosice',
-    }))
-    : [
-      {
-        id: 'logo-only',
-        imageUrl: '/swing-dance-kosice-logo.jpg',
-        caption: 'Swing Dance Kosice',
-        source: 'internal' as const,
-      },
-    ];
+  const visibleItems = media.filter(
+    (item) => isLoggedIn || item.visibility !== 'members'
+  );
+
+  const lockedCount = media.filter(
+    (item) => !isLoggedIn && item.visibility === 'members'
+  ).length;
+
+  const items = visibleItems.length > 0
+    ? visibleItems.map((item) => ({ ...item, caption: item.caption ?? 'Swing Dance Kosice' }))
+    : [{ id: 'logo-only', imageUrl: '/swing-dance-kosice-logo.jpg', caption: 'Swing Dance Kosice', source: 'internal' as const, visibility: 'public' as const }];
 
   const hasEmbeds = items.some((item) => item.source === 'instagram-embed');
 
   return (
     <section className="card">
       <h1>{t.gallery.title}</h1>
+
+      {lockedCount > 0 && !isLoggedIn && (
+        <div style={{ background: '#f5f5f5', borderRadius: '8px', padding: '1rem', marginBottom: '1.5rem' }}>
+          <p className="small">🔒 {lockedCount} {lockedCount === 1 ? 'fotografia je' : 'fotografie sú'} dostupné len pre prihlásených členov. <Link href="/login">Prihláste sa</Link></p>
+        </div>
+      )}
+
       {hasEmbeds && (
         <Script src="https://www.instagram.com/embed.js" strategy="lazyOnload" />
       )}
-      <div className="grid grid-2">
-        {items.map((item) => (
-          <figure key={item.id}>
-            {item.source === 'instagram-embed' ? (
-              <blockquote
-                className="instagram-media"
-                data-instgrm-captioned
-                data-instgrm-permalink={item.imageUrl}
-                data-instgrm-version="14"
-                style={{ margin: '0 auto', width: '100%', maxWidth: '540px' }}
-              />
-            ) : item.source === 'google-photos' ? (
-              <a href={item.linkUrl ?? '#'} target="_blank" rel="noreferrer" style={{ display: 'block', textDecoration: 'none' }}>
-                {item.imageUrl ? (
-                  <Image
-                    src={item.imageUrl}
-                    alt={item.caption ?? t.gallery.imageAlt}
-                    width={1200}
-                    height={900}
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                    style={{ width: '100%', height: 'auto' }}
-                  />
-                ) : (
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '2rem 1rem', background: '#f5f5f5', borderRadius: '8px', color: '#1a1a2e', fontWeight: 600 }}>
-                    📷 {item.caption ?? item.albumTitle} — Otvoriť album
-                  </div>
-                )}
-              </a>
-            ) : (
-              <Image
-                src={item.imageUrl}
-                alt={item.caption ?? t.gallery.imageAlt}
-                width={1200}
-                height={800}
-                sizes="(max-width: 768px) 100vw, 50vw"
-                style={{ width: '100%', height: 'auto' }}
-              />
-            )}
-            <figcaption className="small">{item.caption}{item.albumTitle ? ` · ${item.albumTitle}` : ''} ({getSourceLabel(locale, item.source)})</figcaption>
-          </figure>
-        ))}
-      </div>
+
+      <GalleryLightbox items={items} imageAlt={t.gallery.imageAlt} />
     </section>
   );
 }

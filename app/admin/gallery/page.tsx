@@ -9,6 +9,7 @@ import { getSourceLabel } from '@/lib/i18n';
 type MediaForm = {
   imageUrl: string;
   caption?: string;
+  visibility: 'public' | 'members';
 };
 
 type AlbumForm = {
@@ -16,6 +17,7 @@ type AlbumForm = {
   sourceType: GalleryAlbumSource;
   sourceRef: string;
   isActive: boolean;
+  visibility: 'public' | 'members';
 };
 
 const SOURCE_TYPE_OPTIONS: { value: GalleryAlbumSource; label: string }[] = [
@@ -69,7 +71,8 @@ export default function AdminGalleryPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         imageUrl: formData.get('imageUrl'),
-        caption: formData.get('caption')
+        caption: formData.get('caption'),
+        visibility: formData.get('visibilityMedia') ?? 'public',
       })
     });
 
@@ -95,6 +98,7 @@ export default function AdminGalleryPage() {
         sourceType: formData.get('sourceType'),
         sourceRef: formData.get('sourceRef'),
         isActive: formData.get('isActive') === 'on',
+        visibility: formData.get('visibilityAlbum') ?? 'public',
       })
     });
 
@@ -182,6 +186,12 @@ export default function AdminGalleryPage() {
       <form onSubmit={createMedia}>
         <label>{t.admin.imageUrl}<input name="imageUrl" type="url" required /></label>
         <label>{t.admin.caption}<input name="caption" /></label>
+        <label>Viditeľnosť
+          <select name="visibilityMedia">
+            <option value="public">🌐 Verejná</option>
+            <option value="members">🔒 Len pre členov</option>
+          </select>
+        </label>
         <button type="submit">{t.admin.createGalleryItem}</button>
       </form>
 
@@ -207,6 +217,12 @@ export default function AdminGalleryPage() {
           )}
         </label>
         <p className="small">{SOURCE_HINTS[newAlbumSourceType]}</p>
+        <label>Viditeľnosť
+          <select name="visibilityAlbum">
+            <option value="public">🌐 Verejný</option>
+            <option value="members">🔒 Len pre členov</option>
+          </select>
+        </label>
         <label><input name="isActive" type="checkbox" defaultChecked /> {t.admin.galleryAlbumActive}</label>
         <button type="submit">{t.admin.createGalleryAlbum}</button>
       </form>
@@ -253,6 +269,7 @@ function EditableAlbumCard({
   const [sourceType, setSourceType] = useState<GalleryAlbumSource>(album.sourceType);
   const [sourceRef, setSourceRef] = useState(album.sourceRef);
   const [isActive, setIsActive] = useState(album.isActive);
+  const [albumVisibility, setAlbumVisibility] = useState<'public' | 'members'>(album.visibility ?? 'public');
   const { t } = useLanguage();
 
   return (
@@ -260,7 +277,7 @@ function EditableAlbumCard({
       className="card"
       onSubmit={async (event) => {
         event.preventDefault();
-        await onSave(album.id, { title, sourceType, sourceRef, isActive });
+        await onSave(album.id, { title, sourceType, sourceRef, isActive, visibility: albumVisibility });
       }}
     >
       <label>{t.admin.galleryAlbumName}
@@ -281,6 +298,12 @@ function EditableAlbumCard({
         )}
       </label>
       <p className="small">{SOURCE_HINTS[sourceType]}</p>
+      <label>Viditeľnosť
+        <select value={albumVisibility} onChange={(e) => setAlbumVisibility(e.target.value as 'public' | 'members')}>
+          <option value="public">🌐 Verejný</option>
+          <option value="members">🔒 Len pre členov</option>
+        </select>
+      </label>
       <label><input type="checkbox" checked={isActive} onChange={(event) => setIsActive(event.target.checked)} /> {t.admin.galleryAlbumActive}</label>
       <button type="submit">{t.common.save}</button>
       <button type="button" onClick={() => void onDelete(album.id)}>{t.common.delete}</button>
@@ -299,6 +322,7 @@ function EditableMediaCard({
 }) {
   const [imageUrl, setImageUrl] = useState(item.imageUrl);
   const [caption, setCaption] = useState(item.caption ?? '');
+  const [mediaVisibility, setMediaVisibility] = useState<'public' | 'members'>(item.visibility ?? 'public');
   const { locale, t } = useLanguage();
 
   return (
@@ -309,6 +333,7 @@ function EditableMediaCard({
         await onSave(item.id, {
           imageUrl,
           caption: caption || undefined,
+          visibility: mediaVisibility,
         });
       }}
     >
@@ -326,6 +351,12 @@ function EditableMediaCard({
       </label>
       <label>{t.admin.caption}
         <input value={caption} onChange={(event) => setCaption(event.target.value)} />
+      </label>
+      <label>Viditeľnosť
+        <select value={mediaVisibility} onChange={(e) => setMediaVisibility(e.target.value as 'public' | 'members')}>
+          <option value="public">🌐 Verejná</option>
+          <option value="members">🔒 Len pre členov</option>
+        </select>
       </label>
       <button type="submit">{t.common.save}</button>
       <button type="button" onClick={() => void onDelete(item.id)}>{t.common.delete}</button>

@@ -14,6 +14,7 @@ export interface Article {
   publishedAt?: string;
   updatedAt?: string;
   status: 'draft' | 'published';
+  visibility?: 'public' | 'members';
   views?: number;
   categoryId?: string;
 }
@@ -84,6 +85,7 @@ export interface MediaItem {
   albumTitle?: string;
   source: 'instagram' | 'facebook' | 'internal' | 'instagram-embed' | 'google-photos';
   linkUrl?: string;
+  visibility?: 'public' | 'members';
 }
 
 export type GalleryAlbumSource = 'instagram' | 'google-drive' | 'local-folder' | 'instagram-embed' | 'google-photos';
@@ -94,5 +96,6 @@ export interface GalleryAlbum {
   sourceType: GalleryAlbumSource;
   sourceRef: string;
   isActive: boolean;
+  visibility?: 'public' | 'members';
   createdAt: string;
 }

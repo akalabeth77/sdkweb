@@ -153,6 +153,7 @@ function mapArticle(row: {
     publishedAt: row.publishedAt?.toISOString() ?? undefined,
     updatedAt: row.updatedAt.toISOString(),
     status: mapArticleStatus(row.status),
+    visibility: (row as any).visibility === 'members' ? 'members' : 'public',
     views: row.views,
     categoryId: row.categoryId ?? undefined,
   };
@@ -346,14 +347,15 @@ export async function saveArticle(article: Article): Promise<void> {
       createdAt: new Date(article.createdAt),
       publishedAt,
       status: article.status,
+      visibility: article.visibility ?? 'public',
       categoryId: article.categoryId,
-    },
+    } as any,
   });
 }
 
 export async function updateArticle(
   id: string,
-  article: Pick<Article, 'title' | 'content' | 'status' | 'slug' | 'excerpt' | 'featuredImage' | 'categoryId'>
+  article: Pick<Article, 'title' | 'content' | 'status' | 'slug' | 'excerpt' | 'featuredImage' | 'categoryId' | 'visibility'>
 ): Promise<void> {
   ensureDatabaseConfigured();
 
@@ -376,6 +378,7 @@ export async function updateArticle(
       featuredImage: article.featuredImage,
       categoryId: article.categoryId,
       status: article.status,
+      ...(({ visibility: article.visibility ?? 'public' }) as any),
       publishedAt: article.status === 'published'
         ? existing.publishedAt ?? (shouldSetPublishedAt ? new Date() : existing.publishedAt)
         : null,
@@ -601,6 +604,7 @@ export async function getInternalMedia(): Promise<MediaItem[]> {
       imageUrl: row.imageUrl,
       caption: row.caption ?? undefined,
       source: 'internal',
+      visibility: (row as any).visibility === 'members' ? 'members' : 'public',
     }));
   } catch (error) {
     if (shouldFallbackToSeed(error)) {
@@ -620,7 +624,8 @@ export async function saveInternalMedia(media: Omit<MediaItem, 'source'>): Promi
       imageUrl: media.imageUrl,
       caption: media.caption,
       source: 'internal',
-    },
+      visibility: (media as any).visibility ?? 'public',
+    } as any,
   });
 }
 
@@ -632,7 +637,8 @@ export async function updateInternalMedia(id: string, media: Omit<MediaItem, 'id
     data: {
       imageUrl: media.imageUrl,
       caption: media.caption,
-    },
+      visibility: (media as any).visibility ?? 'public',
+    } as any,
   });
 }
 
@@ -655,6 +661,7 @@ export async function getGalleryAlbums(): Promise<GalleryAlbum[]> {
       sourceType: row.sourceType as GalleryAlbumSource,
       sourceRef: row.sourceRef,
       isActive: row.isActive,
+      visibility: (row as any).visibility === 'members' ? 'members' : 'public',
       createdAt: row.createdAt.toISOString(),
     }));
   } catch (error) {
@@ -676,7 +683,8 @@ export async function saveGalleryAlbum(album: Omit<GalleryAlbum, 'createdAt'>): 
       sourceType: album.sourceType,
       sourceRef: album.sourceRef,
       isActive: album.isActive,
-    },
+      visibility: album.visibility ?? 'public',
+    } as any,
   });
 }
 
@@ -690,7 +698,8 @@ export async function updateGalleryAlbum(id: string, album: Omit<GalleryAlbum, '
       sourceType: album.sourceType,
       sourceRef: album.sourceRef,
       isActive: album.isActive,
-    },
+      visibility: album.visibility ?? 'public',
+    } as any,
   });
 }
 

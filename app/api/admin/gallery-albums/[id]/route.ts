@@ -8,6 +8,7 @@ const schema = z.object({
   sourceType: z.enum(['instagram', 'instagram-embed', 'google-photos', 'google-drive', 'local-folder']),
   sourceRef: z.string().min(1),
   isActive: z.boolean().default(true),
+  visibility: z.enum(['public', 'members']).default('public'),
 });
 
 export async function PUT(
@@ -26,7 +27,7 @@ export async function PUT(
   }
 
   try {
-    await updateGalleryAlbum(params.id, parsed.data);
+    await updateGalleryAlbum(params.id, { ...parsed.data });
     return NextResponse.json({ ok: true });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unable to update gallery album';

@@ -9,6 +9,7 @@ const createSchema = z.object({
   title: z.string().min(3),
   content: z.string().min(1),
   status: z.enum(['draft', 'published']),
+  visibility: z.enum(['public', 'members']).default('public'),
   slug: z.string().optional(),
   excerpt: z.string().optional(),
   featuredImage: z.string().optional(),
@@ -52,6 +53,7 @@ export async function POST(request: Request) {
       title: parsed.data.title,
       content: normalizedContent,
       status: parsed.data.status,
+      visibility: parsed.data.visibility,
       slug: parsed.data.slug,
       excerpt: parsed.data.excerpt,
       featuredImage: parsed.data.featuredImage,
@@ -59,7 +61,7 @@ export async function POST(request: Request) {
       publishedAt: parsed.data.status === 'published' ? new Date().toISOString() : undefined,
       updatedAt: new Date().toISOString(),
       createdAt: new Date().toISOString(),
-      author: 'Admin' // TODO: Get from session
+      author: 'Admin',
     });
 
     if (parsed.data.status === 'published') {
