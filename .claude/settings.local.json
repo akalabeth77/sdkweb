@@ -40,7 +40,8 @@
       "Bash(netsh advfirewall *)",
       "Bash(taskkill //F //IM node.exe)",
       "Bash(curl *)",
-      "Bash(git commit -m 'fix: add error logging to gallery-albums POST for Vercel diagnostics *)"
+      "Bash(git commit -m 'fix: add error logging to gallery-albums POST for Vercel diagnostics *)",
+      "Bash(git commit -m 'fix: gallery page force-dynamic to prevent session-based ISR cache collision *)"
     ]
   }
 }
