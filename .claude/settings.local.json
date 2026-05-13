@@ -51,7 +51,10 @@
       "PowerShell($env:JAVA_HOME = \"C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr\"; $env:PATH = \"$env:JAVA_HOME\\\\bin;$env:PATH\"; Set-Location \"C:\\\\Users\\\\andy\\\\Documents\\\\Github\\\\sdkweb\\\\mobile\\\\android\"; cmd /c \"gradlew.bat assembleDebug\" 2>&1)",
       "PowerShell($env:JAVA_HOME = \"C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr\"; $env:PATH = \"$env:JAVA_HOME\\\\bin;$env:PATH\"; Set-Location \"C:\\\\Users\\\\andy\\\\Documents\\\\Github\\\\sdkweb\\\\mobile\\\\android\"; cmd /c \".\\\\gradlew.bat assembleDebug\" 2>&1)",
       "Bash(gh --version)",
-      "PowerShell(gh *)"
+      "PowerShell(gh *)",
+      "Bash(python3 -c \"import json,sys; r=json.load\\(sys.stdin\\); [print\\(a['name'], a['size'], a['browser_download_url']\\) for a in r.get\\('assets',[]\\)]\")",
+      "Bash(git commit *)",
+      "PowerShell($env:JAVA_HOME = \"C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr\"; $env:PATH = \"$env:JAVA_HOME\\\\bin;$env:PATH\"; Set-Location \"C:\\\\Users\\\\andy\\\\Documents\\\\Github\\\\sdkweb\\\\mobile\\\\android\"; .\\\\gradlew.bat assembleRelease 2>&1)"
     ]
   }
 }
