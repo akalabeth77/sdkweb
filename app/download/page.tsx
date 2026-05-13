@@ -22,8 +22,8 @@ export default function DownloadPage() {
       </p>
 
       <a
-        href="https://github.com/akalabeth77/sdkweb/releases/latest/download/keswing.apk"
-        download="KESwing.apk"
+        href="https://github.com/akalabeth77/sdkweb/releases/download/v1.0.1/keswing.apk"
+        rel="noreferrer"
         style={{
           display: 'inline-flex',
           alignItems: 'center',
@@ -38,13 +38,18 @@ export default function DownloadPage() {
           marginBottom: '1rem',
         }}
       >
-        📱 {isSk ? 'Stiahnuť pre Android' : 'Download for Android'}
+        📱 {isSk ? 'Stiahnuť pre Android (135 MB)' : 'Download for Android (135 MB)'}
       </a>
 
-      <p className="small" style={{ color: '#888', marginTop: '1rem' }}>
+      <p className="small" style={{ color: '#888', marginTop: '0.5rem' }}>
         {isSk
-          ? 'Verzia pre Android. Po stiahnutí povoľ inštaláciu z neznámych zdrojov v Nastaveniach → Bezpečnosť.'
-          : 'Android version. After downloading, allow installation from unknown sources in Settings → Security.'}
+          ? '⚠️ Veľký súbor (135 MB) — odporúčame sťahovať cez Wi-Fi.'
+          : '⚠️ Large file (135 MB) — recommended to download over Wi-Fi.'}
+      </p>
+      <p className="small" style={{ color: '#888', marginTop: '0.25rem' }}>
+        {isSk
+          ? 'Po stiahnutí povoľ inštaláciu z neznámych zdrojov v Nastaveniach → Bezpečnosť.'
+          : 'After downloading, allow installation from unknown sources in Settings → Security.'}
       </p>
 
       <div style={{ marginTop: '2.5rem', padding: '1.5rem', background: '#f5f5f5', borderRadius: '12px', textAlign: 'left' }}>
