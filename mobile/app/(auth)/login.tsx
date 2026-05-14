@@ -8,22 +8,15 @@ import * as WebBrowser from 'expo-web-browser';
 import { api } from '@/lib/api';
 import { saveAuth } from '@/lib/storage';
 import { useAuth } from '@/lib/auth-context';
+import type { AppUser } from '@/lib/types';
 
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'https://sdkweb.vercel.app';
 const WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_WEB;
 const hasGoogleAuth = Boolean(WEB_CLIENT_ID);
 
-// Redirect URI must be registered in Google Cloud Console
-const REDIRECT_URI = 'sdkapp://oauth2callback';
-
-function buildGoogleAuthUrl(): string {
-  const params = new URLSearchParams({
-    client_id: WEB_CLIENT_ID!,
-    redirect_uri: REDIRECT_URI,
-    response_type: 'token',
-    scope: 'openid profile email',
-  });
-  return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
-}
+// Google OAuth goes through our backend proxy — no custom scheme in Google Console needed
+const GOOGLE_START_URL = `${BASE_URL}/api/auth/google/mobile`;
+const APP_CALLBACK_SCHEME = 'sdkapp://oauth2callback';
 
 export default function LoginScreen() {
   const { setUser } = useAuth();
@@ -51,29 +44,22 @@ export default function LoginScreen() {
   }
 
   async function handleGoogleSignIn() {
-    if (!WEB_CLIENT_ID) return;
     setLoading(true);
     try {
-      const result = await WebBrowser.openAuthSessionAsync(buildGoogleAuthUrl(), REDIRECT_URI);
+      const result = await WebBrowser.openAuthSessionAsync(
+        GOOGLE_START_URL,
+        APP_CALLBACK_SCHEME
+      );
 
       if (result.type !== 'success') {
-        setLoading(false);
-        return;
+        return; // user cancelled
       }
 
-      // Parse access_token from fragment or query string
-      const urlPart = result.url.includes('#') ? result.url.split('#')[1] : result.url.split('?')[1];
-      const params = new URLSearchParams(urlPart ?? '');
-      const accessToken = params.get('access_token');
+      // Parse params from redirect: sdkapp://oauth2callback?token=xxx&...
+      const queryString = result.url.split('?')[1] ?? '';
+      const params = new URLSearchParams(queryString);
 
-      if (!accessToken) {
-        Alert.alert('Chyba', 'Nepodarilo sa získať token od Google.');
-        return;
-      }
-
-      const loginResult = await api.auth.googleLogin(accessToken);
-
-      if ('pending' in loginResult && loginResult.pending) {
+      if (params.get('pending') === 'true') {
         Alert.alert(
           'Čaká sa na schválenie',
           'Tvoj účet bol vytvorený a čaká na schválenie administrátora. Po schválení dostaneš email.'
@@ -81,11 +67,33 @@ export default function LoginScreen() {
         return;
       }
 
-      if ('token' in loginResult) {
-        await saveAuth(loginResult.token, loginResult.user);
-        setUser(loginResult.user);
-        router.replace('/(tabs)');
+      const errorParam = params.get('error');
+      if (errorParam) {
+        const messages: Record<string, string> = {
+          rejected: 'Tvoj účet nebol schválený.',
+          cancelled: 'Prihlásenie bolo zrušené.',
+          not_configured: 'Google prihlásenie nie je nakonfigurované.',
+        };
+        Alert.alert('Chyba', messages[errorParam] ?? 'Google prihlásenie zlyhalo.');
+        return;
       }
+
+      const token = params.get('token');
+      if (!token) {
+        Alert.alert('Chyba', 'Neplatná odpoveď zo servera.');
+        return;
+      }
+
+      const user: AppUser = {
+        id: params.get('id') ?? '',
+        email: params.get('email') ?? '',
+        name: params.get('name') ?? '',
+        role: (params.get('role') ?? 'member') as AppUser['role'],
+      };
+
+      await saveAuth(token, user);
+      setUser(user);
+      router.replace('/(tabs)');
     } catch (error) {
       const msg = error instanceof Error ? error.message : 'Google prihlásenie zlyhalo.';
       Alert.alert('Chyba', msg);
