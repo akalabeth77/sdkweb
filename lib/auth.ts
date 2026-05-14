@@ -2,7 +2,7 @@ import { AuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import GoogleProvider from 'next-auth/providers/google';
 import { authSecret } from './auth-secret';
-import { findAppUserByEmail } from './users';
+import { findAppUserByEmail, createGoogleUser } from './users';
 import { verifyPassword } from './password';
 
 export const authOptions: AuthOptions = {
@@ -56,6 +56,24 @@ export const authOptions: AuthOptions = {
       : [])
   ],
   callbacks: {
+    async signIn({ user, account }) {
+      if (account?.provider === 'google') {
+        if (!user.email) return false;
+        try {
+          const existing = await findAppUserByEmail(user.email);
+          if (!existing) {
+            await createGoogleUser({ email: user.email, name: user.name || user.email });
+            return '/pending';
+          }
+          if (existing.status === 'pending') return '/pending';
+          if (existing.status === 'rejected') return false;
+          // approved — allow
+        } catch {
+          return false;
+        }
+      }
+      return true;
+    },
     async jwt({ token, user }) {
       if (user) {
         if ('id' in user) {

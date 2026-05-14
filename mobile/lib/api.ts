@@ -59,6 +59,11 @@ export const api = {
         method: 'POST',
         body: JSON.stringify({ email, name, password }),
       }),
+    googleLogin: (accessToken: string) =>
+      request<{ token: string; user: AppUser } | { pending: true }>('/api/auth/mobile/google', {
+        method: 'POST',
+        body: JSON.stringify({ accessToken }),
+      }),
   },
   devices: {
     register: (platform: 'android' | 'ios', pushToken: string) =>

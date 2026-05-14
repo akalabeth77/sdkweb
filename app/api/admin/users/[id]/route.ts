@@ -6,8 +6,10 @@ import {
   updateUserProfile,
   resetUserPassword,
   deleteUser,
+  findAppUserById,
 } from '@/lib/users';
 import { isAdminSession } from '@/lib/admin';
+import { sendApprovalEmail } from '@/lib/email';
 
 const schema = z.union([
   z.object({ action: z.enum(['approve', 'reject']) }),
@@ -43,6 +45,11 @@ export async function PATCH(
       await resetUserPassword(params.id, parsed.data.password);
     } else {
       await updateUserApproval(params.id, parsed.data.action);
+      if (parsed.data.action === 'approve') {
+        findAppUserById(params.id).then((u) => {
+          if (u) sendApprovalEmail(u.email, u.name, u.id).catch(() => {});
+        }).catch(() => {});
+      }
     }
     return NextResponse.json({ ok: true });
   } catch (error) {

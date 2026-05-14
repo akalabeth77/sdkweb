@@ -252,3 +252,53 @@ export async function deleteUser(id: string): Promise<void> {
 
   await prisma.appUser.delete({ where: { id } });
 }
+
+export async function findAppUserById(id: string): Promise<AppUserRecord | null> {
+  if (!process.env.DATABASE_URL) return null;
+  try {
+    const user = await prisma.appUser.findUnique({ where: { id } });
+    if (!user) return null;
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      passwordHash: user.passwordHash,
+      role: user.role,
+      status: user.status,
+      createdAt: user.createdAt.toISOString(),
+      approvedAt: user.approvedAt?.toISOString(),
+    };
+  } catch (error) {
+    if (isReadFallbackError(error)) return null;
+    throw error;
+  }
+}
+
+export async function createGoogleUser(data: {
+  email: string;
+  name: string;
+}): Promise<AppUserRecord> {
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL is not configured.');
+  }
+  const user = await prisma.appUser.create({
+    data: {
+      id: crypto.randomUUID(),
+      email: data.email,
+      name: data.name,
+      passwordHash: '',
+      role: 'member',
+      status: 'pending',
+    },
+  });
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    passwordHash: user.passwordHash,
+    role: user.role,
+    status: user.status,
+    createdAt: user.createdAt.toISOString(),
+    approvedAt: user.approvedAt?.toISOString(),
+  };
+}
