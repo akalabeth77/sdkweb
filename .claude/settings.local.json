@@ -54,7 +54,22 @@
       "PowerShell(gh *)",
       "Bash(python3 -c \"import json,sys; r=json.load\\(sys.stdin\\); [print\\(a['name'], a['size'], a['browser_download_url']\\) for a in r.get\\('assets',[]\\)]\")",
       "Bash(git commit *)",
-      "PowerShell($env:JAVA_HOME = \"C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr\"; $env:PATH = \"$env:JAVA_HOME\\\\bin;$env:PATH\"; Set-Location \"C:\\\\Users\\\\andy\\\\Documents\\\\Github\\\\sdkweb\\\\mobile\\\\android\"; .\\\\gradlew.bat assembleRelease 2>&1)"
+      "PowerShell($env:JAVA_HOME = \"C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr\"; $env:PATH = \"$env:JAVA_HOME\\\\bin;$env:PATH\"; Set-Location \"C:\\\\Users\\\\andy\\\\Documents\\\\Github\\\\sdkweb\\\\mobile\\\\android\"; .\\\\gradlew.bat assembleRelease 2>&1)",
+      "Bash(python3 -c ' *)",
+      "Bash(\"C:\\\\Users\\\\andy\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\" -t 7 reverse tcp:8081 tcp:8081)",
+      "Bash(\"C:\\\\Users\\\\andy\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\" -t 7 shell am start -n com.swingdancekosice.app/.MainActivity)",
+      "Bash(\"C:\\\\Users\\\\andy\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\" -t 7 logcat -d)",
+      "PowerShell($env:JAVA_HOME = \"C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr\"; $env:PATH = \"$env:JAVA_HOME\\\\bin;$env:PATH\"; Set-Location \"C:\\\\Users\\\\andy\\\\Documents\\\\Github\\\\sdkweb\\\\mobile\\\\android\"; .\\\\gradlew.bat clean assembleRelease 2>&1)",
+      "Bash(\"C:\\\\Users\\\\andy\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\" -t 7 uninstall com.swingdancekosice.app)",
+      "Bash(\"C:\\\\Users\\\\andy\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\" -t 7 install \"C:/Users/andy/Documents/Github/sdkweb/mobile/android/app/build/outputs/apk/release/app-arm64-v8a-release.apk\")",
+      "PowerShell(adb devices *)",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\andy\\\\Documents\\\\Github\\\\sdkweb\\\\mobile\\\\android\\\\app\\\\src\\\\main\" -Recurse | Where-Object { $_.Name -match \"PackageList|MainApplication\" } | Select-Object FullName)",
+      "PowerShell(cmd /c \"dir /s /b C:\\\\Users\\\\andy\\\\Documents\\\\Github\\\\sdkweb\\\\mobile\\\\android\\\\app\\\\src 2>&1\" | Select-Object -First 50)",
+      "PowerShell($pkg = Get-Content \"C:\\\\Users\\\\andy\\\\Documents\\\\Github\\\\sdkweb\\\\mobile\\\\node_modules\\\\expo-linking\\\\package.json\" | ConvertFrom-Json; Write-Output $pkg.version)",
+      "Bash(npx expo *)",
+      "Bash(./gradlew assembleDebug)",
+      "Bash(export JAVA_HOME=\"C:/Program Files/Android/Android Studio/jbr\")",
+      "Bash(export PATH=\"$JAVA_HOME/bin:$PATH\")"
     ]
   }
 }
