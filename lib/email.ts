@@ -124,6 +124,10 @@ export async function sendBroadcastEmail(subject: string, bodyHtml: string): Pro
   } catch { /* fire-and-forget */ }
 }
 
+export async function sendEmailNotification(subject: string, html: string): Promise<void> {
+  return sendBroadcastEmail(subject, html);
+}
+
 export async function sendApprovalEmail(
   toEmail: string,
   name: string,
