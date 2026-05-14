@@ -1,40 +1,35 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
   StyleSheet, Alert, ActivityIndicator, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { router } from 'expo-router';
-import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
 import { api } from '@/lib/api';
 import { saveAuth } from '@/lib/storage';
 import { useAuth } from '@/lib/auth-context';
 
-// Required for iOS/Android OAuth redirect handling
-WebBrowser.maybeCompleteAuthSession();
-
-const ANDROID_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_ANDROID;
 const WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_WEB;
-const hasGoogleAuth = Boolean(ANDROID_CLIENT_ID || WEB_CLIENT_ID);
+const hasGoogleAuth = Boolean(WEB_CLIENT_ID);
+
+// Redirect URI must be registered in Google Cloud Console
+const REDIRECT_URI = 'sdkapp://oauth2callback';
+
+function buildGoogleAuthUrl(): string {
+  const params = new URLSearchParams({
+    client_id: WEB_CLIENT_ID!,
+    redirect_uri: REDIRECT_URI,
+    response_type: 'token',
+    scope: 'openid profile email',
+  });
+  return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+}
 
 export default function LoginScreen() {
   const { setUser } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-
-  const [, googleResponse, promptGoogleAsync] = Google.useAuthRequest({
-    androidClientId: ANDROID_CLIENT_ID,
-    webClientId: WEB_CLIENT_ID,
-    scopes: ['openid', 'profile', 'email'],
-  });
-
-  useEffect(() => {
-    if (googleResponse?.type !== 'success') return;
-    const accessToken = googleResponse.authentication?.accessToken;
-    if (accessToken) handleGoogleLogin(accessToken);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [googleResponse]);
 
   async function handleLogin() {
     if (!email.trim() || !password.trim()) {
@@ -55,24 +50,44 @@ export default function LoginScreen() {
     }
   }
 
-  async function handleGoogleLogin(accessToken: string) {
+  async function handleGoogleSignIn() {
+    if (!WEB_CLIENT_ID) return;
     setLoading(true);
     try {
-      const result = await api.auth.googleLogin(accessToken);
-      if ('pending' in result && result.pending) {
+      const result = await WebBrowser.openAuthSessionAsync(buildGoogleAuthUrl(), REDIRECT_URI);
+
+      if (result.type !== 'success') {
+        setLoading(false);
+        return;
+      }
+
+      // Parse access_token from fragment or query string
+      const urlPart = result.url.includes('#') ? result.url.split('#')[1] : result.url.split('?')[1];
+      const params = new URLSearchParams(urlPart ?? '');
+      const accessToken = params.get('access_token');
+
+      if (!accessToken) {
+        Alert.alert('Chyba', 'Nepodarilo sa získať token od Google.');
+        return;
+      }
+
+      const loginResult = await api.auth.googleLogin(accessToken);
+
+      if ('pending' in loginResult && loginResult.pending) {
         Alert.alert(
           'Čaká sa na schválenie',
           'Tvoj účet bol vytvorený a čaká na schválenie administrátora. Po schválení dostaneš email.'
         );
         return;
       }
-      if ('token' in result && result.token) {
-        await saveAuth(result.token, result.user);
-        setUser(result.user);
+
+      if ('token' in loginResult) {
+        await saveAuth(loginResult.token, loginResult.user);
+        setUser(loginResult.user);
         router.replace('/(tabs)');
       }
     } catch (error) {
-      const msg = error instanceof Error ? error.message : 'Prihlásenie cez Google zlyhalo.';
+      const msg = error instanceof Error ? error.message : 'Google prihlásenie zlyhalo.';
       Alert.alert('Chyba', msg);
     } finally {
       setLoading(false);
@@ -121,7 +136,7 @@ export default function LoginScreen() {
             </View>
             <TouchableOpacity
               style={styles.googleButton}
-              onPress={() => promptGoogleAsync()}
+              onPress={handleGoogleSignIn}
               disabled={loading}
             >
               <Text style={styles.googleButtonText}>🔵  Prihlásiť sa cez Google</Text>
