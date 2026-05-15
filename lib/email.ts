@@ -4,7 +4,7 @@ import { prisma } from './db';
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 const FROM = process.env.FROM_EMAIL ?? 'onboarding@resend.dev';
-const BASE_URL = process.env.NEXTAUTH_URL ?? 'https://sdkweb.vercel.app';
+const BASE_URL = (process.env.NEXTAUTH_URL ?? 'https://sdkweb.vercel.app').replace(/\/$/, '');
 const SECRET = process.env.NEXTAUTH_SECRET ?? 'dev-fallback';
 
 type Recipient = { email: string; userId: string };
