@@ -22,6 +22,16 @@ async function sendExpoPush(messages: ExpoPushMessage[]): Promise<void> {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify(chunk),
+      }).then(async (res) => {
+        const data = await res.json().catch(() => null);
+        if (!res.ok || data?.errors) {
+          console.error('[push] Expo error:', JSON.stringify(data));
+        } else {
+          const ticket = data?.data?.[0];
+          if (ticket?.status === 'error') {
+            console.error('[push] Ticket error:', JSON.stringify(ticket));
+          }
+        }
       })
     )
   );
