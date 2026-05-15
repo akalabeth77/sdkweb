@@ -40,7 +40,7 @@
     "extra": {
       "apiUrl": "https://sdkweb.vercel.app",
       "eas": {
-        "projectId": "a0811128-5c68-4230-8f72-c506c338ee7"
+        "projectId": "a0811128-5c68-4230-8f72-c506c338ee7d"
       }
     }
   }
