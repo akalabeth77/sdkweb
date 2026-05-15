@@ -76,19 +76,22 @@ export const authOptions: AuthOptions = {
     },
     async jwt({ token, user }) {
       if (user) {
-        if ('id' in user) {
-          token.id = user.id as string;
-        }
-        if ('role' in user) {
-          token.role = user.role as string;
-        }
+        // For credentials provider, user.id is our DB UUID and user.role is set.
+        // For Google provider, user.id is Google's numeric ID — do NOT use it as our DB id.
+        if ('role' in user) token.role = user.role as string;
       }
-      if (!token.id && user?.email) {
+      // Look up our DB user whenever role is missing (always happens for Google OAuth).
+      // Also runs on first credentials login if role was somehow not forwarded.
+      if (!token.role && user?.email) {
         const appUser = await findAppUserByEmail(user.email);
-        token.id = appUser?.id;
-        if (!token.role && appUser?.role) {
+        if (appUser) {
+          token.id = appUser.id;
           token.role = appUser.role;
         }
+      }
+      // For credentials logins where role WAS set via user.role, still ensure id is our DB id.
+      if (!token.id && user && 'id' in user) {
+        token.id = user.id as string;
       }
       if (!token.role) token.role = 'member';
       return token;
