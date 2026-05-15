@@ -21,7 +21,7 @@ export async function GET(request: Request) {
   const state = searchParams.get('state');
   const error = searchParams.get('error');
 
-  const baseUrl = process.env.NEXTAUTH_URL ?? 'https://sdkweb.vercel.app';
+  const baseUrl = (process.env.NEXTAUTH_URL ?? 'https://sdkweb.vercel.app').replace(/\/$/, '');
 
   if (error || !code || !state) {
     return NextResponse.redirect(`${APP_CALLBACK}?error=${encodeURIComponent(error ?? 'cancelled')}`);

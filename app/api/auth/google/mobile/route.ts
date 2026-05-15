@@ -6,7 +6,7 @@ import crypto from 'crypto';
 // deep-links back into the app with sdkapp://
 export async function GET() {
   const clientId = process.env.GOOGLE_CLIENT_ID;
-  const baseUrl = process.env.NEXTAUTH_URL ?? 'https://sdkweb.vercel.app';
+  const baseUrl = (process.env.NEXTAUTH_URL ?? 'https://sdkweb.vercel.app').replace(/\/$/, '');
 
   if (!clientId) {
     return NextResponse.redirect(`sdkapp://oauth2callback?error=not_configured`);
