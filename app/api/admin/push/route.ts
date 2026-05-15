@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { isEditorOrAdminSession } from '@/lib/auth-utils';
 import { notifyAllDevices } from '@/lib/push';
 import { sendBroadcastEmail } from '@/lib/email';
+import { prisma } from '@/lib/db';
 
 const schema = z.object({
   title: z.string().min(1).max(100),
@@ -22,15 +23,32 @@ export async function POST(request: Request) {
   }
 
   const { title, body, channels } = parsed.data;
+  const diagnostics: Record<string, unknown> = {};
 
   if (channels.includes('push')) {
+    const devices = await prisma.device.findMany({ select: { pushToken: true } }).catch(() => []);
+    const validTokens = devices.filter(d => d.pushToken.startsWith('ExponentPushToken'));
+    diagnostics.pushDevicesTotal = devices.length;
+    diagnostics.pushDevicesValid = validTokens.length;
     await notifyAllDevices(title, body);
   }
 
   if (channels.includes('email')) {
+    const recipients = await prisma.appUser.findMany({
+      where: { status: 'approved' },
+      select: { email: true, profile: { select: { preferences: true } } },
+    }).catch(() => []);
+    const emailRecipients = recipients.filter(u => {
+      const prefs = u.profile?.preferences as Record<string, unknown> | null;
+      return prefs?.emailNotifications !== false;
+    });
+    diagnostics.emailRecipientsTotal = recipients.length;
+    diagnostics.emailRecipientsFiltered = emailRecipients.length;
+    diagnostics.resendConfigured = Boolean(process.env.RESEND_API_KEY);
     const html = `<h2>${title}</h2><p style="white-space:pre-wrap">${body}</p>`;
     await sendBroadcastEmail(title, html);
   }
 
-  return NextResponse.json({ ok: true });
+  console.log('[broadcast]', diagnostics);
+  return NextResponse.json({ ok: true, diagnostics });
 }

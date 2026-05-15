@@ -1,4 +1,5 @@
 import * as Notifications from 'expo-notifications';
+import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { api } from './api';
 
@@ -23,9 +24,21 @@ export async function requestAndRegisterPushToken(): Promise<void> {
 
   if (finalStatus !== 'granted') return;
 
-  const token = await Notifications.getExpoPushTokenAsync().catch(() => null);
-  if (!token) return;
+  // projectId is required for standalone APKs in Expo SDK 49+
+  const projectId =
+    Constants.expoConfig?.extra?.eas?.projectId as string | undefined;
+
+  const tokenResult = await Notifications.getExpoPushTokenAsync(
+    projectId ? { projectId } : undefined
+  ).catch((e) => {
+    console.warn('[push] getExpoPushTokenAsync failed:', e?.message ?? e);
+    return null;
+  });
+
+  if (!tokenResult) return;
 
   const platform = Platform.OS === 'ios' ? 'ios' : 'android';
-  await api.devices.register(platform, token.data).catch(() => {});
+  await api.devices.register(platform, tokenResult.data).catch((e) => {
+    console.warn('[push] device register failed:', e?.message ?? e);
+  });
 }
