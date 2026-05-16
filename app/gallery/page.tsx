@@ -16,7 +16,7 @@ export default async function GalleryPage() {
   const { media } = await fetchPortalData();
 
   const visibleItems = media.filter(
-    (item) => isLoggedIn || item.visibility !== 'members'
+    (item) => item.imageUrl && (isLoggedIn || item.visibility !== 'members')
   );
 
   const lockedCount = media.filter(

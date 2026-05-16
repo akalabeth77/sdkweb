@@ -37,6 +37,7 @@ async function fetchInstagramAlbumMedia(album: GalleryAlbum): Promise<MediaItem[
       caption: item.caption,
       albumTitle: album.title,
       source: 'instagram',
+      visibility: album.visibility,
     } satisfies MediaItem))
     .filter((item: MediaItem) => Boolean(item.imageUrl));
 }
@@ -64,6 +65,7 @@ async function fetchGoogleDriveAlbumMedia(album: GalleryAlbum): Promise<MediaIte
       caption: file.name,
       albumTitle: album.title,
       source: 'internal',
+      visibility: album.visibility,
     } satisfies MediaItem));
 }
 
@@ -91,6 +93,7 @@ async function fetchLocalFolderAlbumMedia(album: GalleryAlbum): Promise<MediaIte
           caption: entry.name,
           albumTitle: album.title,
           source: 'internal',
+          visibility: album.visibility,
         } satisfies MediaItem;
       });
   } catch {
@@ -127,13 +130,18 @@ async function fetchGooglePhotosAlbumMedia(album: GalleryAlbum): Promise<MediaIt
     // fetch failed — show link card without thumbnail
   }
 
+  if (!thumbnailUrl) {
+    return [];
+  }
+
   return [{
     id: `alb-gp-${album.id}`,
-    imageUrl: thumbnailUrl ?? '',
+    imageUrl: thumbnailUrl,
     caption: album.title,
     albumTitle: album.title,
     source: 'google-photos' as const,
     linkUrl: albumUrl,
+    visibility: album.visibility,
   }];
 }
 
@@ -150,6 +158,7 @@ function fetchInstagramEmbedAlbumMedia(album: GalleryAlbum): MediaItem[] {
       caption: album.title,
       albumTitle: album.title,
       source: 'instagram-embed' as const,
+      visibility: album.visibility,
     }));
 }
 
