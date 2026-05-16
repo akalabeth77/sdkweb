@@ -102,6 +102,7 @@ export async function fetchPortalData() {
       .filter((e) => e.start >= now)
       .sort((a, b) => a.start.localeCompare(b.start))
       .slice(0, 20),
-    media: [...internalMedia, ...albumMedia, ...igMedia, ...fallbackMedia].slice(0, 24)
+    media: [...internalMedia, ...albumMedia, ...igMedia, ...fallbackMedia].slice(0, 24),
+    albums: albums.filter(a => a.isActive),
   };
 }
