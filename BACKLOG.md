@@ -4,7 +4,7 @@
 
 | # | Popis | Priorita | Stav |
 |---|-------|----------|------|
-| | | | |
+| 1 | Google Photos scraping nefunguje spoľahlivo — thumbnail sa nezobrazí ak Google zablokuje request alebo zmení HTML štruktúru. Zvážiť náhradu (Google Drive API, priamy upload fotiek). | 🟡 stredná | `todo` |
 
 ---
 
