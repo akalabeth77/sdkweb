@@ -1,253 +1,39 @@
 'use client';
 
-import { ChangeEvent, FormEvent, useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { EventItem } from '@/types';
 import { useLanguage } from '@/components/language-context';
-import { getSourceLabel, toDateLocale } from '@/lib/i18n';
+import { toDateLocale } from '@/lib/i18n';
 
 type RepeatWeekday = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
-
 type EventForm = {
-  title: string;
-  description?: string;
-  category?: EventItem['category'];
-  start: string;
-  end?: string;
-  location?: string;
-  registrationUrl?: string;
-  hasRegistrationForm?: boolean;
-  isInternal?: boolean;
-  applyToSeries?: boolean;
+  title: string; description: string; category: NonNullable<EventItem['category']>;
+  start: string; end: string; location: string; registrationUrl: string;
+  hasRegistrationForm: boolean; isInternal: boolean; applyToSeries: boolean;
 };
 
-type AdminRegistrationItem = {
-  id: string;
-  status: string;
-  createdAt: string;
-  user: {
-    id: string;
-    name: string;
-    email: string;
-  };
-  event: {
-    id: string;
-    title: string;
-    start: string;
-    location?: string;
-  };
+const EMPTY_FORM: EventForm = {
+  title: '', description: '', category: 'other', start: '', end: '',
+  location: '', registrationUrl: '', hasRegistrationForm: false, isInternal: true, applyToSeries: false,
 };
 
 function toDatetimeLocal(iso: string): string {
-  const date = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  const d = new Date(iso.replace(/Z$/, '')); // preserve stored local time
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
-function EventRegistrationsList() {
-  const [registrations, setRegistrations] = useState<AdminRegistrationItem[]>([]);
-  const [loading, setLoading] = useState(true);
+const CAT_COLOR: Record<string, string> = {
+  course:'#2563eb','dance-party':'#db2777',workshop:'#7c3aed',festival:'#ea580c',concert:'#059669',other:'#6b7280',
+};
 
-  useEffect(() => {
-    void fetchRegistrations();
-  }, []);
-
-  async function fetchRegistrations() {
-    try {
-      const response = await fetch('/api/admin/registrations', { cache: 'no-store' });
-      if (!response.ok) {
-        setRegistrations([]);
-        return;
-      }
-
-      const payload = (await response.json()) as { data: AdminRegistrationItem[] };
-      setRegistrations(payload.data);
-    } catch {
-      setRegistrations([]);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  if (loading) {
-    return <p className="small">Nacitavam registracie...</p>;
-  }
-
-  if (registrations.length === 0) {
-    return <p className="small">Zatial neexistuju ziadne registracie na eventy.</p>;
-  }
-
+function Overlay({ onBg, children }: { onBg:()=>void; children: React.ReactNode }) {
   return (
-    <div className="grid" style={{ gap: '0.75rem' }}>
-      {registrations.map((registration) => (
-        <article key={registration.id} className="card">
-          <div className="event-meta-row">
-            <div>
-              <strong>{registration.event.title}</strong>
-              <div className="small">{registration.user.name} · {registration.user.email}</div>
-              <div className="small">{new Date(registration.event.start).toLocaleString('sk-SK')}</div>
-              {registration.event.location ? <div className="small">{registration.event.location}</div> : null}
-            </div>
-            <span className="event-badge" style={{ backgroundColor: registration.status === 'cancelled' ? '#b91c1c' : '#166534' }}>
-              {registration.status}
-            </span>
-          </div>
-        </article>
-      ))}
-    </div>
-  );
-}
-
-function EditableEventCard({
-  item,
-  onSave,
-  onDelete,
-}: {
-  item: EventItem;
-  onSave: (id: string, data: EventForm) => Promise<void>;
-  onDelete: (id: string, deleteSeries?: boolean) => Promise<void>;
-}) {
-  const [title, setTitle] = useState(item.title);
-  const [description, setDescription] = useState(item.description ?? '');
-  const [category, setCategory] = useState<NonNullable<EventItem['category']>>(item.category ?? 'other');
-  const [start, setStart] = useState(toDatetimeLocal(item.start));
-  const [end, setEnd] = useState(item.end ? toDatetimeLocal(item.end) : '');
-  const [location, setLocation] = useState(item.location ?? '');
-  const [registrationUrl, setRegistrationUrl] = useState(item.registrationUrl ?? '');
-  const [hasRegistrationForm, setHasRegistrationForm] = useState((item as any).hasRegistrationForm ?? false);
-  const [isInternal, setIsInternal] = useState(item.source === 'internal');
-  const [applyToSeries, setApplyToSeries] = useState(false);
-  const { locale, t } = useLanguage();
-
-  const categoryOptions: Array<{ value: NonNullable<EventItem['category']>; label: string }> = [
-    { value: 'course', label: t.admin.eventCategoryCourse },
-    { value: 'dance-party', label: t.admin.eventCategoryDanceParty },
-    { value: 'workshop', label: t.admin.eventCategoryWorkshop },
-    { value: 'festival', label: t.admin.eventCategoryFestival },
-    { value: 'concert', label: t.admin.eventCategoryConcert },
-    { value: 'other', label: t.admin.eventCategoryOther },
-  ];
-
-  return (
-    <form
-      className="card"
-      onSubmit={async (event) => {
-        event.preventDefault();
-        await onSave(item.id, {
-          title,
-          description: description || undefined,
-          category,
-          start: new Date(start).toISOString(),
-          end: end ? new Date(end).toISOString() : undefined,
-          location: location || undefined,
-          registrationUrl: registrationUrl || undefined,
-          hasRegistrationForm,
-          isInternal,
-          applyToSeries,
-        });
-      }}
-    >
-      <div className="small">{getSourceLabel(locale, item.source)} · {new Date(item.start).toLocaleString(toDateLocale(locale))}</div>
-      <label>{t.admin.eventTitle}
-        <input value={title} onChange={(event) => setTitle(event.target.value)} required />
-      </label>
-      <label>{t.admin.eventDescription}
-        <textarea value={description} onChange={(event) => setDescription(event.target.value)} rows={4} />
-      </label>
-      <label>{t.admin.eventCategory}
-        <select value={category} onChange={(event) => setCategory(event.target.value as NonNullable<EventItem['category']>)}>
-          {categoryOptions.map((option) => (
-            <option key={option.value} value={option.value}>{option.label}</option>
-          ))}
-        </select>
-      </label>
-      <label>{t.admin.eventStart}
-        <input type="datetime-local" value={start} onChange={(event) => setStart(event.target.value)} required />
-      </label>
-      <label>{t.admin.eventEnd}
-        <input type="datetime-local" value={end} onChange={(event) => setEnd(event.target.value)} />
-      </label>
-      <label>{t.admin.eventLocation}
-        <input value={location} onChange={(event) => setLocation(event.target.value)} />
-      </label>
-      <label>Registračný odkaz
-        <input type="url" value={registrationUrl} onChange={(event) => setRegistrationUrl(event.target.value)} placeholder="https://forms.gle/..." />
-      </label>
-      <label>
-        <input type="checkbox" checked={hasRegistrationForm} onChange={(event) => setHasRegistrationForm(event.target.checked)} />
-        {' '}Aktivovať registračný formulár (vbudovaný)
-      </label>
-      <label>
-        <input type="checkbox" checked={isInternal} onChange={(event) => setIsInternal(event.target.checked)} />
-        {' '}
-        {t.admin.internalEvent}
-      </label>
-      {item.recurrenceGroupId ? (
-        <label>
-          <input type="checkbox" checked={applyToSeries} onChange={(event) => setApplyToSeries(event.target.checked)} />
-          {' '}
-          {t.admin.applyToEventSeries}
-        </label>
-      ) : null}
-      <div className="event-actions-row">
-        <button type="submit" style={{ width: 'auto' }}>{t.common.save}</button>
-        <button type="button" onClick={() => void onDelete(item.id)} style={{ width: 'auto', background: '#b91c1c' }}>{t.common.delete}</button>
-        {item.recurrenceGroupId ? (
-          <button type="button" onClick={() => void onDelete(item.id, true)} style={{ width: 'auto', background: '#92400e' }}>{t.admin.deleteEventSeries}</button>
-        ) : null}
+    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.45)',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center',padding:'1rem'}}
+      onClick={e=>{if(e.target===e.currentTarget)onBg();}}>
+      <div style={{background:'#fff',borderRadius:'14px',padding:'1.5rem',width:'100%',maxWidth:'560px',maxHeight:'90vh',overflowY:'auto'}}>
+        {children}
       </div>
-    </form>
-  );
-}
-
-function groupEventsBySeries(events: EventItem[]) {
-  const groups = new Map<string, EventItem[]>();
-  const singles: EventItem[] = [];
-  for (const event of events) {
-    if (event.recurrenceGroupId) {
-      const arr = groups.get(event.recurrenceGroupId) ?? [];
-      arr.push(event);
-      groups.set(event.recurrenceGroupId, arr);
-    } else {
-      singles.push(event);
-    }
-  }
-  return { groups, singles };
-}
-
-function RecurringEventGroup({
-  events,
-  onSave,
-  onDelete,
-}: {
-  events: EventItem[];
-  onSave: (id: string, data: EventForm) => Promise<void>;
-  onDelete: (id: string, deleteSeries?: boolean) => Promise<void>;
-}) {
-  const [expanded, setExpanded] = useState(false);
-  const first = events[0];
-  const last = events[events.length - 1];
-  const { t } = useLanguage();
-
-  return (
-    <div className="card">
-      <button
-        type="button"
-        onClick={() => setExpanded((v) => !v)}
-        style={{ background: 'none', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'left', padding: 0 }}
-      >
-        <strong>{first.title}</strong>
-        <span className="small">
-          {' '}· {events.length}× opakovanie · {new Date(first.start).toLocaleDateString('sk-SK')} – {new Date(last.start).toLocaleDateString('sk-SK')}
-        </span>
-        <span style={{ float: 'right' }}>{expanded ? '▲' : '▼'}</span>
-      </button>
-      {expanded && (
-        <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          {events.map((event) => (
-            <EditableEventCard key={event.id} item={event} onSave={onSave} onDelete={onDelete} />
-          ))}
-        </div>
-      )}
     </div>
   );
 }
@@ -255,254 +41,282 @@ function RecurringEventGroup({
 export default function AdminEventsPage() {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [externalEvents, setExternalEvents] = useState<EventItem[]>([]);
-  const [message, setMessage] = useState('');
-  const [loadError, setLoadError] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [catFilter, setCatFilter] = useState('all');
+  const [editEvent, setEditEvent] = useState<EventItem|null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [form, setForm] = useState<EventForm>(EMPTY_FORM);
   const [repeatEnabled, setRepeatEnabled] = useState(false);
-  const [newEventInternal, setNewEventInternal] = useState(true);
   const [repeatUntil, setRepeatUntil] = useState('');
   const [repeatDays, setRepeatDays] = useState<RepeatWeekday[]>([]);
+  const [msg, setMsg] = useState('');
+  const [saving, setSaving] = useState(false);
   const { locale, t } = useLanguage();
 
-  const categoryOptions: Array<{ value: NonNullable<EventItem['category']>; label: string }> = [
-    { value: 'course', label: t.admin.eventCategoryCourse },
-    { value: 'dance-party', label: t.admin.eventCategoryDanceParty },
-    { value: 'workshop', label: t.admin.eventCategoryWorkshop },
-    { value: 'festival', label: t.admin.eventCategoryFestival },
-    { value: 'concert', label: t.admin.eventCategoryConcert },
-    { value: 'other', label: t.admin.eventCategoryOther },
+  const CAT_OPTS = [
+    {value:'course',label:t.admin.eventCategoryCourse},{value:'dance-party',label:t.admin.eventCategoryDanceParty},
+    {value:'workshop',label:t.admin.eventCategoryWorkshop},{value:'festival',label:t.admin.eventCategoryFestival},
+    {value:'concert',label:t.admin.eventCategoryConcert},{value:'other',label:t.admin.eventCategoryOther},
+  ];
+  const WEEK_OPTS = [
+    {value:'mon',label:t.admin.weekdayMon},{value:'tue',label:t.admin.weekdayTue},
+    {value:'wed',label:t.admin.weekdayWed},{value:'thu',label:t.admin.weekdayThu},
+    {value:'fri',label:t.admin.weekdayFri},{value:'sat',label:t.admin.weekdaySat},
+    {value:'sun',label:t.admin.weekdaySun},
   ];
 
-  const weekdayOptions: Array<{ value: RepeatWeekday; label: string }> = [
-    { value: 'mon', label: t.admin.weekdayMon },
-    { value: 'tue', label: t.admin.weekdayTue },
-    { value: 'wed', label: t.admin.weekdayWed },
-    { value: 'thu', label: t.admin.weekdayThu },
-    { value: 'fri', label: t.admin.weekdayFri },
-    { value: 'sat', label: t.admin.weekdaySat },
-    { value: 'sun', label: t.admin.weekdaySun },
-  ];
-
-  const loadEvents = useCallback(async () => {
-    const response = await fetch('/api/admin/events', { cache: 'no-store' });
-
-    if (!response.ok) {
-      const payload = (await response.json().catch(() => ({ error: t.admin.eventLoadError }))) as { error?: string };
-      setLoadError(payload.error ?? t.admin.eventLoadError);
-      setEvents([]);
-      setExternalEvents([]);
-      return;
+  const load = useCallback(async () => {
+    const res = await fetch('/api/admin/events', { cache: 'no-store' });
+    if (res.ok) {
+      const p = await res.json() as {internalEvents:EventItem[];externalEvents:EventItem[]};
+      setEvents(p.internalEvents); setExternalEvents(p.externalEvents);
     }
+    setLoading(false);
+  }, []);
+  useEffect(()=>{void load();},[load]);
 
-    const payload = (await response.json()) as { internalEvents: EventItem[]; externalEvents: EventItem[] };
-    setEvents(payload.internalEvents);
-    setExternalEvents(payload.externalEvents);
-    setLoadError('');
-  }, [t.admin.eventLoadError]);
+  const allEvents = [...events, ...externalEvents].sort((a,b)=>a.start.localeCompare(b.start));
+  const filtered = allEvents.filter(e => {
+    const q = search.toLowerCase();
+    return (!q || e.title.toLowerCase().includes(q) || (e.location??'').toLowerCase().includes(q))
+      && (catFilter==='all' || (e.category??'other')===catFilter);
+  });
 
-  useEffect(() => {
-    void loadEvents();
-  }, [loadEvents]);
-
-  function toggleRepeatDay(day: RepeatWeekday, checked: boolean) {
-    if (checked) {
-      setRepeatDays((prev) => (prev.includes(day) ? prev : [...prev, day]));
-      return;
-    }
-
-    setRepeatDays((prev) => prev.filter((item) => item !== day));
+  // Group series for list display
+  const groups = new Map<string, EventItem[]>();
+  const singles: EventItem[] = [];
+  for (const e of filtered) {
+    if (e.recurrenceGroupId) {
+      const arr = groups.get(e.recurrenceGroupId) ?? [];
+      arr.push(e); groups.set(e.recurrenceGroupId, arr);
+    } else singles.push(e);
   }
 
-  async function createEvent(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-
-    if (repeatEnabled && !repeatUntil) {
-      setMessage(t.admin.eventRepeatUntilRequired);
-      return;
-    }
-
-    if (repeatEnabled && repeatDays.length === 0) {
-      setMessage(t.admin.eventRepeatDaysRequired);
-      return;
-    }
-
-    const response = await fetch('/api/admin/events', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        title: formData.get('title'),
-        description: formData.get('description'),
-        category: formData.get('category'),
-        start: formData.get('start'),
-        end: formData.get('end'),
-        location: formData.get('location'),
-        registrationUrl: formData.get('registrationUrl') || undefined,
-        hasRegistrationForm: formData.get('hasRegistrationForm') === 'on',
-        isInternal: newEventInternal,
-        repeat: repeatEnabled,
-        repeatUntil: repeatEnabled ? repeatUntil : '',
-        repeatWeekdays: repeatEnabled ? repeatDays : [],
-      }),
+  function openEdit(e: EventItem) {
+    setEditEvent(e);
+    setForm({
+      title:e.title, description:e.description??'', category:e.category??'other',
+      start:toDatetimeLocal(e.start), end:e.end?toDatetimeLocal(e.end):'',
+      location:e.location??'', registrationUrl:e.registrationUrl??'',
+      hasRegistrationForm:(e as any).hasRegistrationForm??false,
+      isInternal:e.source==='internal', applyToSeries:false,
     });
-
-    const payload = (await response.json().catch(() => ({}))) as { error?: string; createdCount?: number };
-    if (!response.ok) {
-      setMessage(payload.error ?? t.admin.eventCreateError);
-      return;
-    }
-
-    setMessage(typeof payload.createdCount === 'number' && payload.createdCount > 1
-      ? `${t.admin.eventCreated} (${payload.createdCount})`
-      : t.admin.eventCreated);
-    event.currentTarget.reset();
-    setRepeatEnabled(false);
-    setNewEventInternal(true);
-    setRepeatUntil('');
-    setRepeatDays([]);
-    await loadEvents();
   }
 
-  async function updateEvent(id: string, data: EventForm) {
-    const response = await fetch(`/api/admin/events/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
+  function closeModal() { setEditEvent(null); setCreateOpen(false); }
 
-    const payload = (await response.json().catch(() => ({}))) as { error?: string; updatedCount?: number };
-    if (!response.ok) {
-      setMessage(payload.error ?? t.admin.eventUpdateError);
-      return;
+  async function saveEvent() {
+    if (!form.title.trim() || !form.start) return;
+    setSaving(true);
+    if (createOpen) {
+      if (repeatEnabled && (!repeatUntil || repeatDays.length===0)) {
+        setMsg('Vyplň dni a dátum opakovania.'); setSaving(false); return;
+      }
+      const res = await fetch('/api/admin/events', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          title:form.title, description:form.description||undefined, category:form.category,
+          start:form.start, end:form.end||undefined, location:form.location||undefined,
+          registrationUrl:form.registrationUrl||undefined, hasRegistrationForm:form.hasRegistrationForm,
+          isInternal:form.isInternal, repeat:repeatEnabled, repeatUntil:repeatEnabled?repeatUntil:'',
+          repeatWeekdays:repeatEnabled?repeatDays:[],
+        }),
+      });
+      const p = await res.json().catch(()=>({})) as {createdCount?:number};
+      if (res.ok) {
+        setMsg(p.createdCount&&p.createdCount>1 ? `${t.admin.eventCreated} (${p.createdCount})` : t.admin.eventCreated);
+        closeModal(); setRepeatEnabled(false); setRepeatDays([]); setRepeatUntil('');
+        await load();
+      } else setMsg(t.admin.eventCreateError);
+    } else if (editEvent) {
+      const res = await fetch(`/api/admin/events/${editEvent.id}`, {
+        method:'PUT', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          title:form.title, description:form.description||undefined, category:form.category,
+          start:new Date(form.start).toISOString(), end:form.end?new Date(form.end).toISOString():undefined,
+          location:form.location||undefined, registrationUrl:form.registrationUrl||undefined,
+          hasRegistrationForm:form.hasRegistrationForm, isInternal:form.isInternal, applyToSeries:form.applyToSeries,
+        }),
+      });
+      const p = await res.json().catch(()=>({})) as {updatedCount?:number};
+      if (res.ok) {
+        setMsg(p.updatedCount&&p.updatedCount>1 ? `${t.admin.eventUpdated} (${p.updatedCount})` : t.admin.eventUpdated);
+        closeModal(); await load();
+      } else setMsg(t.admin.eventUpdateError);
     }
-
-    setMessage(typeof payload.updatedCount === 'number' && payload.updatedCount > 1
-      ? `${t.admin.eventUpdated} (${payload.updatedCount})`
-      : t.admin.eventUpdated);
-    await loadEvents();
+    setSaving(false);
   }
 
-  async function deleteEvent(id: string, deleteSeries?: boolean) {
-    const confirmText = deleteSeries ? t.admin.confirmDeleteEventSeries : t.admin.confirmDeleteEvent;
-    if (!window.confirm(confirmText)) {
-      return;
-    }
-
-    const suffix = deleteSeries ? '?scope=series' : '';
-    const response = await fetch(`/api/admin/events/${id}${suffix}`, { method: 'DELETE' });
-    const payload = (await response.json().catch(() => ({}))) as { error?: string; deletedCount?: number };
-
-    if (!response.ok) {
-      setMessage(payload.error ?? t.admin.eventDeleteError);
-      return;
-    }
-
-    setMessage(typeof payload.deletedCount === 'number' && payload.deletedCount > 1
-      ? `${t.admin.eventSeriesDeleted} (${payload.deletedCount})`
-      : t.admin.eventDeleted);
-    await loadEvents();
+  async function deleteEvent(id:string, series=false) {
+    if (!confirm(series ? t.admin.confirmDeleteEventSeries : t.admin.confirmDeleteEvent)) return;
+    const res = await fetch(`/api/admin/events/${id}${series?'?scope=series':''}`,{method:'DELETE'});
+    const p = await res.json().catch(()=>({})) as {deletedCount?:number};
+    if (res.ok) {
+      setMsg(p.deletedCount&&p.deletedCount>1?`${t.admin.eventSeriesDeleted} (${p.deletedCount})`:t.admin.eventDeleted);
+      closeModal(); await load();
+    } else setMsg(t.admin.eventDeleteError);
   }
+
+  const f = (v:keyof EventForm, val:unknown) => setForm(prev=>({...prev,[v]:val}));
+
+  const EventFormFields = () => (
+    <>
+      <label>{t.admin.eventTitle}<input value={form.title} onChange={e=>f('title',e.target.value)} required /></label>
+      <label>{t.admin.eventDescription}<textarea value={form.description} onChange={e=>f('description',e.target.value)} rows={3} style={{width:'100%'}} /></label>
+      <label>{t.admin.eventCategory}
+        <select value={form.category} onChange={e=>f('category',e.target.value)}>
+          {CAT_OPTS.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}
+        </select>
+      </label>
+      <div style={{display:'flex',gap:'0.75rem',flexWrap:'wrap'}}>
+        <label style={{flex:1}}>{t.admin.eventStart}<input type="datetime-local" value={form.start} onChange={e=>f('start',e.target.value)} required /></label>
+        <label style={{flex:1}}>{t.admin.eventEnd}<input type="datetime-local" value={form.end} onChange={e=>f('end',e.target.value)} /></label>
+      </div>
+      <label>{t.admin.eventLocation}<input value={form.location} onChange={e=>f('location',e.target.value)} /></label>
+      <label>Registračný odkaz<input type="url" value={form.registrationUrl} onChange={e=>f('registrationUrl',e.target.value)} placeholder="https://forms.gle/..." /></label>
+      <label style={{display:'flex',gap:'0.5rem',alignItems:'center',marginBottom:'0.5rem'}}>
+        <input type="checkbox" checked={form.hasRegistrationForm} onChange={e=>f('hasRegistrationForm',e.target.checked)} /> Aktivovať registračný formulár
+      </label>
+      <label style={{display:'flex',gap:'0.5rem',alignItems:'center'}}>
+        <input type="checkbox" checked={form.isInternal} onChange={e=>f('isInternal',e.target.checked)} /> {t.admin.internalEvent}
+      </label>
+    </>
+  );
 
   return (
     <section className="card">
       <h1>{t.admin.eventsTitle}</h1>
-      <form onSubmit={(event) => void createEvent(event)}>
-        <label>{t.admin.eventTitle}<input name="title" required /></label>
-        <label>{t.admin.eventDescription}<textarea name="description" rows={4} /></label>
-        <label>{t.admin.eventCategory}
-          <select name="category" defaultValue="other">
-            {categoryOptions.map((option) => (
-              <option key={option.value} value={option.value}>{option.label}</option>
-            ))}
-          </select>
-        </label>
-        <label>{t.admin.eventStart}<input name="start" type="datetime-local" required /></label>
-        <label>{t.admin.eventEnd}<input name="end" type="datetime-local" /></label>
-        <label>{t.admin.eventLocation}<input name="location" /></label>
-        <label>Registračný odkaz (Google Form, Eventbrite, ...)
-          <input name="registrationUrl" type="url" placeholder="https://forms.gle/..." />
-        </label>
-        <label>
-          <input type="checkbox" name="hasRegistrationForm" />
-          {' '}Aktivovať registračný formulár (vbudovaný)
-        </label>
-        <label>
-          <input type="checkbox" checked={newEventInternal} onChange={(event: ChangeEvent<HTMLInputElement>) => setNewEventInternal(event.target.checked)} />
-          {' '}
-          {t.admin.internalEvent}
-        </label>
-        <label>
-          <input type="checkbox" checked={repeatEnabled} onChange={(event: ChangeEvent<HTMLInputElement>) => setRepeatEnabled(event.target.checked)} />
-          {' '}
-          {t.admin.eventRecurring}
-        </label>
-        {repeatEnabled ? (
-          <>
-            <label>{t.admin.eventRepeatUntil}<input type="date" value={repeatUntil} onChange={(event: ChangeEvent<HTMLInputElement>) => setRepeatUntil(event.target.value)} required /></label>
-            <fieldset>
-              <legend>{t.admin.eventRepeatDays}</legend>
-              <div className="grid" style={{ gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '0.5rem' }}>
-                {weekdayOptions.map((weekday) => (
-                  <label key={weekday.value} style={{ margin: 0 }}>
-                    <input
-                      type="checkbox"
-                      checked={repeatDays.includes(weekday.value)}
-                      onChange={(event: ChangeEvent<HTMLInputElement>) => toggleRepeatDay(weekday.value, event.target.checked)}
-                    />
-                    {' '}
-                    {weekday.label}
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-          </>
-        ) : null}
-        <button type="submit">{t.admin.createEvent}</button>
-      </form>
+      {msg && <p className="small">{msg}</p>}
 
-      {message ? <p className="small">{message}</p> : null}
-      {loadError ? <p className="small">{loadError}</p> : null}
+      <div style={{display:'flex',gap:'0.75rem',marginBottom:'1rem',flexWrap:'wrap'}}>
+        <input placeholder="Hľadaj podľa názvu alebo miesta…" value={search} onChange={e=>setSearch(e.target.value)} style={{flex:'1 1 200px',margin:0}} />
+        <select value={catFilter} onChange={e=>setCatFilter(e.target.value)} style={{margin:0}}>
+          <option value="all">Všetky kategórie</option>
+          {CAT_OPTS.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}
+        </select>
+        <button type="button" onClick={()=>{setForm(EMPTY_FORM);setRepeatEnabled(false);setRepeatDays([]);setRepeatUntil('');setCreateOpen(true);}}>+ Nový event</button>
+      </div>
 
-      <h2 style={{ marginTop: '1.5rem' }}>{t.admin.existingEvents}</h2>
-      {events.length === 0 ? (
-        <p className="small">{t.admin.noEventsFound}</p>
-      ) : (() => {
-        const { groups, singles } = groupEventsBySeries(events);
-        return (
-          <div className="grid" style={{ gap: '1rem' }}>
-            {singles.map((eventItem) => (
-              <EditableEventCard key={eventItem.id} item={eventItem} onSave={updateEvent} onDelete={deleteEvent} />
-            ))}
-            {[...groups.values()].map((groupEvents) => (
-              <RecurringEventGroup
-                key={groupEvents[0].recurrenceGroupId}
-                events={groupEvents}
-                onSave={updateEvent}
-                onDelete={deleteEvent}
-              />
-            ))}
-          </div>
-        );
-      })()}
-
-      <h2 style={{ marginTop: '1.5rem' }}>{t.admin.externalEvents}</h2>
-      <p className="small">{t.admin.externalEventsDescription}</p>
-      {externalEvents.length === 0 ? (
-        <p className="small">{t.admin.noExternalEventsFound}</p>
-      ) : (
-        <div className="grid" style={{ gap: '1rem' }}>
-          {externalEvents.map((eventItem) => (
-            <article key={eventItem.id} className="card">
-              <strong>{eventItem.title}</strong>
-              <div className="small">{getSourceLabel(locale, eventItem.source)} · {new Date(eventItem.start).toLocaleString(toDateLocale(locale))}</div>
-              {eventItem.location ? <div className="small">{eventItem.location}</div> : null}
-              {eventItem.description ? <p>{eventItem.description}</p> : null}
-            </article>
-          ))}
+      {loading ? <p className="small">Načítavam…</p> : (
+        <div style={{overflowX:'auto'}}>
+          <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.9rem'}}>
+            <thead><tr style={{borderBottom:'2px solid #e8e8e8',textAlign:'left'}}>
+              <th style={{padding:'8px 10px'}}>Názov</th>
+              <th style={{padding:'8px 10px'}}>Kategória</th>
+              <th style={{padding:'8px 10px'}}>Dátum</th>
+              <th style={{padding:'8px 10px'}}>Miesto</th>
+              <th style={{padding:'8px 10px'}}></th>
+            </tr></thead>
+            <tbody>
+              {/* Singles */}
+              {singles.map(e=>{
+                const d = new Date(e.start.replace(/Z$/,''));
+                const isPast = d < new Date();
+                return (
+                  <tr key={e.id} style={{borderBottom:'1px solid #f0f0f0',opacity:isPast?0.5:1}}>
+                    <td style={{padding:'8px 10px',fontWeight:600}}>{e.title}</td>
+                    <td style={{padding:'8px 10px'}}>
+                      <span style={{background:CAT_COLOR[e.category??'other'],color:'#fff',padding:'2px 7px',borderRadius:'5px',fontSize:'0.75rem',fontWeight:700}}>
+                        {CAT_OPTS.find(c=>c.value===e.category)?.label??'Iné'}
+                      </span>
+                    </td>
+                    <td style={{padding:'8px 10px',fontSize:'0.85rem',whiteSpace:'nowrap'}}>
+                      {d.toLocaleDateString(toDateLocale(locale))} {d.toLocaleTimeString(toDateLocale(locale),{hour:'2-digit',minute:'2-digit'})}
+                    </td>
+                    <td style={{padding:'8px 10px',fontSize:'0.85rem',color:'#666'}}>{e.location??'–'}</td>
+                    <td style={{padding:'8px 10px'}}>
+                      <button type="button" style={{fontSize:'0.8rem',padding:'4px 10px'}} onClick={()=>openEdit(e)}>✏️ Upraviť</button>
+                    </td>
+                  </tr>
+                );
+              })}
+              {/* Series groups — collapsed rows */}
+              {Array.from(groups.entries()).map(([gid, gevents])=>{
+                const first = gevents[0]; const last = gevents[gevents.length-1];
+                return (
+                  <tr key={gid} style={{borderBottom:'1px solid #f0f0f0',background:'#fafafa'}}>
+                    <td style={{padding:'8px 10px',fontWeight:600}}>
+                      {first.title}
+                      <span className="small" style={{fontWeight:400,color:'#888',marginLeft:'0.4rem'}}>({gevents.length}× séria)</span>
+                    </td>
+                    <td style={{padding:'8px 10px'}}>
+                      <span style={{background:CAT_COLOR[first.category??'other'],color:'#fff',padding:'2px 7px',borderRadius:'5px',fontSize:'0.75rem',fontWeight:700}}>
+                        {CAT_OPTS.find(c=>c.value===first.category)?.label??'Iné'}
+                      </span>
+                    </td>
+                    <td style={{padding:'8px 10px',fontSize:'0.85rem',whiteSpace:'nowrap'}}>
+                      {new Date(first.start.replace(/Z$/,'')).toLocaleDateString(toDateLocale(locale))} – {new Date(last.start.replace(/Z$/,'')).toLocaleDateString(toDateLocale(locale))}
+                    </td>
+                    <td style={{padding:'8px 10px',fontSize:'0.85rem',color:'#666'}}>{first.location??'–'}</td>
+                    <td style={{padding:'8px 10px',display:'flex',gap:'4px',flexWrap:'wrap'}}>
+                      {gevents.slice(0,3).map(e=>(
+                        <button key={e.id} type="button" style={{fontSize:'0.75rem',padding:'3px 7px'}} onClick={()=>openEdit(e)}>
+                          {new Date(e.start.replace(/Z$/,'')).toLocaleDateString(toDateLocale(locale),{day:'numeric',month:'short'})}
+                        </button>
+                      ))}
+                      {gevents.length>3&&<span className="small" style={{padding:'3px',color:'#888'}}>+{gevents.length-3}</span>}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       )}
 
-      <h2 style={{ marginTop: '1.5rem' }}>Registracie na eventy</h2>
-      <EventRegistrationsList />
+      {/* Create modal */}
+      {createOpen && (
+        <Overlay onBg={closeModal}>
+          <h2 style={{margin:'0 0 1rem'}}>Nový event</h2>
+          <EventFormFields />
+          <hr style={{margin:'1rem 0',border:'none',borderTop:'1px solid #eee'}} />
+          <label style={{display:'flex',gap:'0.5rem',alignItems:'center',marginBottom:'0.75rem',fontWeight:700}}>
+            <input type="checkbox" checked={repeatEnabled} onChange={e=>setRepeatEnabled(e.target.checked)} /> Opakovať event
+          </label>
+          {repeatEnabled && (
+            <>
+              <div style={{display:'flex',gap:'0.5rem',flexWrap:'wrap',marginBottom:'0.75rem'}}>
+                {WEEK_OPTS.map(d=>(
+                  <label key={d.value} style={{display:'flex',gap:'4px',alignItems:'center',padding:'4px 8px',background:repeatDays.includes(d.value as RepeatWeekday)?'#1a1a2e':'#f0f0f0',color:repeatDays.includes(d.value as RepeatWeekday)?'#fff':'#333',borderRadius:'6px',cursor:'pointer',fontSize:'0.85rem',fontWeight:600}}>
+                    <input type="checkbox" checked={repeatDays.includes(d.value as RepeatWeekday)} onChange={e=>{setRepeatDays(prev=>e.target.checked?[...prev,d.value as RepeatWeekday]:prev.filter(x=>x!==d.value));}} style={{display:'none'}} /> {d.label}
+                  </label>
+                ))}
+              </div>
+              <label>Opakovať do<input type="date" value={repeatUntil} onChange={e=>setRepeatUntil(e.target.value)} /></label>
+            </>
+          )}
+          <div style={{display:'flex',gap:'0.5rem',marginTop:'1rem'}}>
+            <button type="button" onClick={saveEvent} disabled={saving}>{saving?'Ukladám…':'✅ Vytvoriť'}</button>
+            <button type="button" style={{background:'#f0f0f0',color:'#333'}} onClick={closeModal}>Zatvoriť</button>
+          </div>
+        </Overlay>
+      )}
+
+      {/* Edit modal */}
+      {editEvent && (
+        <Overlay onBg={closeModal}>
+          <h2 style={{margin:'0 0 1rem'}}>Upraviť: {editEvent.title}</h2>
+          <EventFormFields />
+          {editEvent.recurrenceGroupId && (
+            <>
+              <p className="small" style={{color:'#888',marginTop:'0.5rem'}}>Tento event je súčasť série.</p>
+              <label style={{display:'flex',gap:'0.5rem',alignItems:'center'}}>
+                <input type="checkbox" checked={form.applyToSeries} onChange={e=>f('applyToSeries',e.target.checked)} /> {t.admin.applyToEventSeries}
+              </label>
+            </>
+          )}
+          <hr style={{margin:'1rem 0',border:'none',borderTop:'1px solid #eee'}} />
+          <div style={{display:'flex',gap:'0.5rem',flexWrap:'wrap'}}>
+            <button type="button" onClick={saveEvent} disabled={saving}>{saving?'Ukladám…':'✅ Uložiť zmeny'}</button>
+            <button type="button" style={{background:'#f0f0f0',color:'#333'}} onClick={closeModal}>Zatvoriť</button>
+            <button type="button" style={{background:'#dc2626',color:'#fff'}} onClick={()=>void deleteEvent(editEvent.id)}>🗑 Zmazať</button>
+            {editEvent.recurrenceGroupId && (
+              <button type="button" style={{background:'#92400e',color:'#fff'}} onClick={()=>void deleteEvent(editEvent.id,true)}>🗑 Zmazať sériu</button>
+            )}
+          </div>
+        </Overlay>
+      )}
     </section>
   );
 }
