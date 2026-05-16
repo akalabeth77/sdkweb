@@ -124,6 +124,26 @@ export async function sendBroadcastEmail(subject: string, bodyHtml: string): Pro
   } catch { /* fire-and-forget */ }
 }
 
+export async function notifyAdminsNewRegistration(userName: string, userEmail: string): Promise<void> {
+  if (!resend) return;
+  try {
+    const admins = await prisma.appUser.findMany({
+      where: { role: 'admin', status: 'approved' },
+      select: { email: true },
+    });
+    if (admins.length === 0) return;
+    await resend.emails.send({
+      from: FROM,
+      to: admins.map((a) => a.email),
+      subject: 'Nová registrácia — KESwing',
+      html: `<h2>Nová registrácia na portáli</h2>
+<p><strong>Meno:</strong> ${userName}</p>
+<p><strong>Email:</strong> ${userEmail}</p>
+<p><a href="${BASE_URL}/admin/users/approvals" style="display:inline-block;background:#1a1a2e;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:bold">Schváliť registráciu</a></p>`,
+    });
+  } catch { /* fire-and-forget */ }
+}
+
 export async function sendEmailNotification(subject: string, html: string): Promise<void> {
   return sendBroadcastEmail(subject, html);
 }

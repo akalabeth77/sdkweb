@@ -16,273 +16,209 @@ type UserRecord = {
 
 const ROLES = ['admin', 'editor', 'member'] as const;
 
-function roleLabel(role: string, t: ReturnType<typeof useLanguage>['t']) {
-  if (role === 'admin') return t.admin.roleAdmin;
-  if (role === 'editor') return t.admin.roleEditor;
-  return t.admin.roleMember;
+function roleLabel(role: string) {
+  if (role === 'admin') return 'Admin';
+  if (role === 'editor') return 'Editor';
+  return 'Člen';
 }
 
-function statusLabel(status: string, t: ReturnType<typeof useLanguage>['t']) {
-  if (status === 'pending') return t.admin.statusPending;
-  if (status === 'approved') return t.admin.statusApproved;
-  if (status === 'rejected') return t.admin.statusRejected;
-  return status;
+function statusBadge(status: string) {
+  if (status === 'approved') return <span style={{ color: '#059669', fontWeight: 700 }}>✓ Aktívny</span>;
+  if (status === 'rejected') return <span style={{ color: '#dc2626' }}>✕ Zamietnutý</span>;
+  return <span style={{ color: '#d97706' }}>⏳ Čakajúci</span>;
 }
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<UserRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState('all');
+  const [editUser, setEditUser] = useState<UserRecord | null>(null);
   const [message, setMessage] = useState('');
-  const [forbidden, setForbidden] = useState(false);
-  const { locale, t } = useLanguage();
+  const { locale } = useLanguage();
 
-  const loadUsers = useCallback(async () => {
-    const response = await fetch('/api/admin/users', { cache: 'no-store' });
+  const load = useCallback(async () => {
+    const res = await fetch('/api/admin/users', { cache: 'no-store' });
+    if (!res.ok) { setLoading(false); return; }
+    const all = (await res.json()) as UserRecord[];
+    setUsers(all.filter((u) => u.status !== 'pending').sort((a, b) => a.name.localeCompare(b.name, 'sk')));
+    setLoading(false);
+  }, []);
 
-    if (response.status === 403) {
-      setForbidden(true);
-      setUsers([]);
-      return;
-    }
+  useEffect(() => { void load(); }, [load]);
 
-    if (!response.ok) {
-      const payload = (await response.json().catch(() => ({}))) as { error?: string };
-      setMessage(payload.error ?? t.admin.loadUsersError);
-      return;
-    }
+  const filtered = users.filter((u) => {
+    const q = search.toLowerCase();
+    const matchSearch = !q || u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
+    const matchRole = roleFilter === 'all' || u.role === roleFilter;
+    return matchSearch && matchRole;
+  });
 
-    const payload = (await response.json()) as UserRecord[];
-    setUsers(payload);
-    setMessage('');
-  }, [t.admin.loadUsersError]);
-
-  useEffect(() => {
-    void loadUsers();
-  }, [loadUsers]);
-
-  async function handleApproval(id: string, action: 'approve' | 'reject') {
-    const response = await fetch(`/api/admin/users/${id}`, {
+  async function patch(id: string, body: object) {
+    const res = await fetch(`/api/admin/users/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action }),
+      body: JSON.stringify(body),
     });
-
-    if (response.ok) {
-      setMessage(action === 'approve' ? t.admin.userApproved : t.admin.userRejected);
-      await loadUsers();
-      return;
-    }
-
-    const payload = (await response.json().catch(() => ({}))) as { error?: string };
-    setMessage(payload.error ?? t.admin.operationFailed);
+    if (res.ok) { setMessage('✅ Uložené.'); await load(); }
+    else setMessage('❌ Chyba pri ukladaní.');
   }
 
-  async function handleSetRole(id: string, role: string) {
-    const response = await fetch(`/api/admin/users/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'setRole', role }),
-    });
-
-    if (response.ok) {
-      setMessage(t.admin.userRoleUpdated);
-      await loadUsers();
-      return;
-    }
-
-    const payload = (await response.json().catch(() => ({}))) as { error?: string };
-    setMessage(payload.error ?? t.admin.userRoleUpdateError);
-  }
-
-  async function handleUpdateProfile(id: string, name: string, email: string) {
-    const response = await fetch(`/api/admin/users/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'updateProfile', name, email }),
-    });
-
-    if (response.ok) {
-      setMessage(t.admin.userProfileUpdated);
-      await loadUsers();
-      return;
-    }
-
-    const payload = (await response.json().catch(() => ({}))) as { error?: string };
-    setMessage(payload.error ?? t.admin.userProfileUpdateError);
-  }
-
-  async function handleResetPassword(id: string, password: string) {
-    if (password.length < 6) {
-      setMessage(t.admin.userPasswordTooShort);
-      return;
-    }
-
-    const response = await fetch(`/api/admin/users/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'resetPassword', password }),
-    });
-
-    if (response.ok) {
-      setMessage(t.admin.userPasswordReset);
-      return;
-    }
-
-    const payload = (await response.json().catch(() => ({}))) as { error?: string };
-    setMessage(payload.error ?? t.admin.userPasswordResetError);
-  }
-
-  async function handleDelete(id: string, name: string) {
-    if (!confirm(`${t.admin.confirmDeleteUser}\n\n${name}`)) return;
-
-    const response = await fetch(`/api/admin/users/${id}`, { method: 'DELETE' });
-
-    if (response.ok) {
-      setMessage(t.admin.userDeleted);
-      await loadUsers();
-      return;
-    }
-
-    const payload = (await response.json().catch(() => ({}))) as { error?: string };
-    setMessage(payload.error ?? t.admin.userDeleteError);
-  }
-
-  if (forbidden) {
-    return (
-      <section className="card">
-        <h1>{t.admin.userEditorTitle}</h1>
-        <p className="small">{t.admin.adminOnly}</p>
-      </section>
-    );
+  async function del(id: string, name: string) {
+    if (!confirm(`Zmazať používateľa "${name}"? Táto akcia je nevratná.`)) return;
+    const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE' });
+    if (res.ok) { setMessage('Používateľ zmazaný.'); setEditUser(null); await load(); }
+    else setMessage('Chyba pri mazaní.');
   }
 
   return (
     <section className="card">
-      <h1>{t.admin.userEditorTitle}</h1>
-      {message ? <p className="small">{message}</p> : null}
+      <h1>👥 Používatelia</h1>
+      {message && <p className="small">{message}</p>}
 
-      {users.length === 0 ? (
-        <p className="small">{t.admin.noUsers}</p>
+      <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+        <input
+          placeholder="Hľadaj podľa mena alebo emailu…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{ flex: '1 1 220px', margin: 0 }}
+        />
+        <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} style={{ margin: 0 }}>
+          <option value="all">Všetky role</option>
+          <option value="admin">Admin</option>
+          <option value="editor">Editor</option>
+          <option value="member">Člen</option>
+        </select>
+      </div>
+
+      {loading ? (
+        <p className="small">Načítavam…</p>
+      ) : filtered.length === 0 ? (
+        <p className="small">Žiadni používatelia.</p>
       ) : (
-        <div className="grid" style={{ gap: '1rem' }}>
-          {users.map((user) => (
-            <UserEditorCard
-              key={user.id}
-              user={user}
-              locale={locale}
-              onApprove={handleApproval}
-              onSetRole={handleSetRole}
-              onUpdateProfile={handleUpdateProfile}
-              onResetPassword={handleResetPassword}
-              onDelete={handleDelete}
-            />
-          ))}
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+            <thead>
+              <tr style={{ borderBottom: '2px solid #e8e8e8', textAlign: 'left' }}>
+                <th style={{ padding: '8px 12px' }}>Meno</th>
+                <th style={{ padding: '8px 12px' }}>Email</th>
+                <th style={{ padding: '8px 12px' }}>Rola</th>
+                <th style={{ padding: '8px 12px' }}>Stav</th>
+                <th style={{ padding: '8px 12px' }}>Registrovaný</th>
+                <th style={{ padding: '8px 12px' }}></th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((u) => (
+                <tr key={u.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                  <td style={{ padding: '8px 12px', fontWeight: 600 }}>{u.name}</td>
+                  <td style={{ padding: '8px 12px', color: '#555' }}>{u.email}</td>
+                  <td style={{ padding: '8px 12px' }}>{roleLabel(u.role)}</td>
+                  <td style={{ padding: '8px 12px' }}>{statusBadge(u.status)}</td>
+                  <td style={{ padding: '8px 12px', color: '#888', fontSize: '0.8rem' }}>
+                    {new Date(u.createdAt).toLocaleDateString(toDateLocale(locale))}
+                  </td>
+                  <td style={{ padding: '8px 12px' }}>
+                    <button type="button" style={{ fontSize: '0.8rem', padding: '4px 10px' }} onClick={() => { setEditUser(u); setMessage(''); }}>
+                      ✏️ Upraviť
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
+      )}
+
+      {editUser && (
+        <EditModal
+          user={editUser}
+          onClose={() => setEditUser(null)}
+          onPatch={patch}
+          onDelete={del}
+        />
       )}
     </section>
   );
 }
 
-function UserEditorCard({
+function EditModal({
   user,
-  locale,
-  onApprove,
-  onSetRole,
-  onUpdateProfile,
-  onResetPassword,
+  onClose,
+  onPatch,
   onDelete,
 }: {
   user: UserRecord;
-  locale: ReturnType<typeof useLanguage>['locale'];
-  onApprove: (id: string, action: 'approve' | 'reject') => Promise<void>;
-  onSetRole: (id: string, role: string) => Promise<void>;
-  onUpdateProfile: (id: string, name: string, email: string) => Promise<void>;
-  onResetPassword: (id: string, password: string) => Promise<void>;
+  onClose: () => void;
+  onPatch: (id: string, body: object) => Promise<void>;
   onDelete: (id: string, name: string) => Promise<void>;
 }) {
-  const { t } = useLanguage();
   const [name, setName] = useState(user.name);
   const [email, setEmail] = useState(user.email);
+  const [role, setRole] = useState(user.role);
   const [password, setPassword] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  async function save() {
+    setSaving(true);
+    await onPatch(user.id, { action: 'updateProfile', name: name.trim(), email: email.trim() });
+    if (role !== user.role) await onPatch(user.id, { action: 'setRole', role });
+    setSaving(false);
+    onClose();
+  }
+
+  async function resetPwd() {
+    if (password.length < 6) return;
+    setSaving(true);
+    await onPatch(user.id, { action: 'resetPassword', password });
+    setPassword('');
+    setSaving(false);
+  }
 
   return (
-    <article className="card">
-      <div className="small">
-        {t.admin.userStatus}: <strong>{statusLabel(user.status, t)}</strong>
-        {' · '}
-        {t.admin.userRole}: <strong>{roleLabel(user.role, t)}</strong>
-      </div>
-      <div className="small">
-        {t.common.registeredAt}: {new Date(user.createdAt).toLocaleString(toDateLocale(locale))}
-      </div>
+    <div
+      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div style={{ background: '#fff', borderRadius: '14px', padding: '1.5rem', width: '100%', maxWidth: '460px', maxHeight: '90vh', overflowY: 'auto' }}>
+        <h2 style={{ marginTop: 0, marginBottom: '1rem' }}>Upraviť: {user.name}</h2>
 
-      <label>
-        {t.auth.name}
-        <input value={name} onChange={(event) => setName(event.target.value)} required />
-      </label>
-      <label>
-        {t.auth.email}
-        <input value={email} onChange={(event) => setEmail(event.target.value)} type="email" required />
-      </label>
-
-      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.5rem', alignItems: 'center' }}>
-        <button type="button" onClick={() => void onUpdateProfile(user.id, name.trim(), email.trim())}>
-          {t.admin.updateUserProfile}
-        </button>
-
-        {user.status === 'pending' && (
-          <>
-            <button type="button" onClick={() => void onApprove(user.id, 'approve')}>
-              {t.common.approve}
-            </button>
-            <button type="button" onClick={() => void onApprove(user.id, 'reject')}>
-              {t.common.reject}
-            </button>
-          </>
-        )}
-
-        <label style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
-          <span className="small">{t.admin.setRole}:</span>
-          <select
-            value={user.role}
-            onChange={(e) => void onSetRole(user.id, e.target.value)}
-            style={{ margin: 0 }}
-          >
-            {ROLES.map((r) => (
-              <option key={r} value={r}>{roleLabel(r, t)}</option>
-            ))}
+        <label>Meno<input value={name} onChange={(e) => setName(e.target.value)} /></label>
+        <label>Email<input value={email} onChange={(e) => setEmail(e.target.value)} type="email" /></label>
+        <label>
+          Rola
+          <select value={role} onChange={(e) => setRole(e.target.value)}>
+            {ROLES.map((r) => <option key={r} value={r}>{roleLabel(r)}</option>)}
           </select>
         </label>
-      </div>
 
-      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.5rem', alignItems: 'center' }}>
-        <label style={{ margin: 0, flex: '1 1 260px' }}>
-          {t.admin.newPassword}
-          <input
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            type="password"
-            minLength={6}
-          />
+        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+          <button type="button" onClick={save} disabled={saving}>
+            {saving ? 'Ukladám…' : '✅ Uložiť zmeny'}
+          </button>
+          <button type="button" onClick={onClose} style={{ background: '#f0f0f0', color: '#333' }}>
+            Zatvoriť
+          </button>
+        </div>
+
+        <hr style={{ margin: '1rem 0', border: 'none', borderTop: '1px solid #eee' }} />
+        <label>
+          Nové heslo (min 6 znakov)
+          <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" minLength={6} />
         </label>
-        <button
-          type="button"
-          onClick={async () => {
-            await onResetPassword(user.id, password);
-            setPassword('');
-          }}
-        >
-          {t.admin.resetUserPassword}
+        <button type="button" onClick={resetPwd} disabled={password.length < 6 || saving}>
+          🔑 Resetovať heslo
         </button>
 
+        <hr style={{ margin: '1rem 0', border: 'none', borderTop: '1px solid #eee' }} />
         <button
           type="button"
-          style={{ marginLeft: 'auto', background: 'var(--color-danger, #dc2626)' }}
+          style={{ background: '#dc2626', color: '#fff', width: '100%' }}
           onClick={() => void onDelete(user.id, user.name)}
         >
-          {t.admin.deleteUser}
+          🗑 Zmazať používateľa
         </button>
       </div>
-    </article>
+    </div>
   );
 }
-

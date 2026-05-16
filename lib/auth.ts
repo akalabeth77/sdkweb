@@ -4,6 +4,7 @@ import GoogleProvider from 'next-auth/providers/google';
 import { authSecret } from './auth-secret';
 import { findAppUserByEmail, createGoogleUser } from './users';
 import { verifyPassword } from './password';
+import { notifyAdminsNewRegistration } from './email';
 
 export const authOptions: AuthOptions = {
   secret: authSecret,
@@ -62,7 +63,9 @@ export const authOptions: AuthOptions = {
         try {
           const existing = await findAppUserByEmail(user.email);
           if (!existing) {
-            await createGoogleUser({ email: user.email, name: user.name || user.email });
+            const name = user.name || user.email;
+            await createGoogleUser({ email: user.email, name });
+            notifyAdminsNewRegistration(name, user.email).catch(() => {});
             return '/pending';
           }
           if (existing.status === 'pending') return '/pending';

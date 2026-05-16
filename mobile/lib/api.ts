@@ -1,6 +1,24 @@
 import { getToken } from './storage';
 import type { AppUser, Article, EventItem, MediaItem, SpotifyPlaylist, UserPreferences } from './types';
 
+export type GalleryAlbum = {
+  id: string;
+  title: string;
+  sourceType: string;
+  sourceRef: string;
+  isActive: boolean;
+  visibility: string;
+  createdAt: string;
+};
+
+export type GalleryAlbumInput = {
+  title: string;
+  sourceType: string;
+  sourceRef: string;
+  isActive: boolean;
+  visibility: 'public' | 'members';
+};
+
 export type PendingUser = {
   id: string;
   name: string;
@@ -111,6 +129,21 @@ export const api = {
           method: 'POST',
           body: JSON.stringify({ action: 'reject' }),
         }),
+    },
+    galleryAlbums: {
+      list: () => request<{ albums: GalleryAlbum[] }>('/api/mobile/admin/gallery-albums'),
+      create: (data: GalleryAlbumInput) =>
+        request<{ ok: true }>('/api/mobile/admin/gallery-albums', {
+          method: 'POST',
+          body: JSON.stringify(data),
+        }),
+      update: (id: string, data: Partial<GalleryAlbumInput>) =>
+        request<{ ok: true }>(`/api/mobile/admin/gallery-albums/${id}`, {
+          method: 'PATCH',
+          body: JSON.stringify(data),
+        }),
+      remove: (id: string) =>
+        request<{ ok: true }>(`/api/mobile/admin/gallery-albums/${id}`, { method: 'DELETE' }),
     },
   },
 };

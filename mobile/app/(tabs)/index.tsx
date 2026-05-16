@@ -102,7 +102,8 @@ function EventCard({ event }: { event: EventItem }) {
   const cat = event.category ?? 'other';
   const color = CATEGORY_COLOR[cat] ?? '#6b7280';
   const label = CATEGORY_LABEL[cat] ?? 'Iné';
-  const d = new Date(event.start);
+  // Strip Z so the stored "local" time isn't shifted by UTC offset on device
+  const d = new Date(event.start.replace(/Z$/, ''));
   const dateStr = d.toLocaleDateString('sk-SK', { weekday: 'long', day: 'numeric', month: 'long' });
   const timeStr = d.toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' });
   const eventUrl = `${BASE_URL}/events/${encodeURIComponent(event.id)}`;

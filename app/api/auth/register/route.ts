@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { registerAppUser } from '@/lib/users';
+import { notifyAdminsNewRegistration } from '@/lib/email';
 
 const schema = z.object({
   email: z.string().email(),
@@ -26,5 +27,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Registrácia nie je dostupná bez databázy.' }, { status: 503 });
   }
 
+  notifyAdminsNewRegistration(parsed.data.name, parsed.data.email).catch(() => {});
   return NextResponse.json({ ok: true });
 }

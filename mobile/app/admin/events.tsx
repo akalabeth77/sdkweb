@@ -47,7 +47,7 @@ function EventRow({ event }: { event: EventItem }) {
   const cat = event.category ?? 'other';
   const color = CATEGORY_COLOR[cat] ?? '#6b7280';
   const label = CATEGORY_LABEL[cat] ?? 'Iné';
-  const d = new Date(event.start);
+  const d = new Date(event.start.replace(/Z$/, ''));
   const isPast = d < new Date();
 
   return (

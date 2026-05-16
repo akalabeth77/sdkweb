@@ -6,6 +6,7 @@ type AdminLink = { label: string; icon: string; route: string; adminOnly?: boole
 
 const LINKS: AdminLink[] = [
   { label: 'Eventy', icon: '📅', route: '/admin/events' },
+  { label: 'Galéria', icon: '🖼️', route: '/admin/gallery' },
   { label: 'Schválenie používateľov', icon: '👥', route: '/admin/users', adminOnly: true },
 ];
 
