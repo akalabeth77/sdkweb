@@ -517,6 +517,25 @@ export async function deleteInternalEvent(id: string): Promise<void> {
   }
 }
 
+export async function getInternalEventById(id: string): Promise<EventItem | null> {
+  ensureDatabaseConfigured();
+  const row = await prisma.internalEvent.findUnique({ where: { id } });
+  if (!row) return null;
+  return {
+    id: row.id,
+    title: row.title,
+    description: row.description ?? undefined,
+    category: mapEventCategory(row.category),
+    start: row.start.toISOString(),
+    end: row.end?.toISOString(),
+    location: row.location ?? undefined,
+    registrationUrl: (row as any).registrationUrl ?? undefined,
+    hasRegistrationForm: (row as any).hasRegistrationForm ?? false,
+    recurrenceGroupId: row.recurrenceGroupId ?? undefined,
+    source: mapEventSource(row.source),
+  };
+}
+
 export async function getInternalEventRecurrenceGroupId(id: string): Promise<string | undefined> {
   ensureDatabaseConfigured();
 

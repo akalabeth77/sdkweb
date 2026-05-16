@@ -52,6 +52,10 @@ export default function AdminEventsPage() {
   const [repeatDays, setRepeatDays] = useState<RepeatWeekday[]>([]);
   const [msg, setMsg] = useState('');
   const [saving, setSaving] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+  const [extendUntil, setExtendUntil] = useState('');
+  const [extendDays, setExtendDays] = useState<RepeatWeekday[]>([]);
+  const [extending, setExtending] = useState(false);
   const { locale, t } = useLanguage();
 
   const CAT_OPTS = [
@@ -102,9 +106,39 @@ export default function AdminEventsPage() {
       hasRegistrationForm:(e as any).hasRegistrationForm??false,
       isInternal:e.source==='internal', applyToSeries:false,
     });
+    setExtendUntil('');
+    if (e.recurrenceGroupId) {
+      const dayMap: RepeatWeekday[] = ['sun','mon','tue','wed','thu','fri','sat'];
+      const detected = new Set(
+        allEvents.filter(ev => ev.recurrenceGroupId === e.recurrenceGroupId)
+          .map(ev => dayMap[new Date(ev.start.replace(/Z$/,'')).getDay()])
+      );
+      setExtendDays(Array.from(detected));
+    } else {
+      setExtendDays([]);
+    }
   }
 
-  function closeModal() { setEditEvent(null); setCreateOpen(false); }
+  function closeModal() { setEditEvent(null); setCreateOpen(false); setExtendUntil(''); }
+
+  async function extendSeries() {
+    if (!editEvent || !extendUntil || extendDays.length === 0) {
+      setMsg('Vyber dni a dátum predĺženia.'); return;
+    }
+    setExtending(true);
+    const res = await fetch(`/api/admin/events/${editEvent.id}`, {
+      method: 'PATCH', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ extendUntil, weekdays: extendDays }),
+    });
+    const p = await res.json().catch(()=>({})) as { createdCount?: number; error?: string };
+    if (res.ok) {
+      setMsg(`Séria predĺžená o ${p.createdCount ?? 0} eventov.`);
+      closeModal(); await load();
+    } else {
+      setMsg(`❌ ${p.error ?? 'Chyba'}`);
+    }
+    setExtending(false);
+  }
 
   async function saveEvent() {
     if (!form.title.trim() || !form.start) return;
@@ -231,9 +265,12 @@ export default function AdminEventsPage() {
                   </tr>
                 );
               })}
-              {/* Series groups — collapsed rows */}
+              {/* Series groups */}
               {Array.from(groups.entries()).map(([gid, gevents])=>{
                 const first = gevents[0]; const last = gevents[gevents.length-1];
+                const expanded = expandedGroups.has(gid);
+                const shown = expanded ? gevents : gevents.slice(0,3);
+                const hidden = gevents.length - 3;
                 return (
                   <tr key={gid} style={{borderBottom:'1px solid #f0f0f0',background:'#fafafa'}}>
                     <td style={{padding:'8px 10px',fontWeight:600}}>
@@ -249,13 +286,26 @@ export default function AdminEventsPage() {
                       {new Date(first.start.replace(/Z$/,'')).toLocaleDateString(toDateLocale(locale))} – {new Date(last.start.replace(/Z$/,'')).toLocaleDateString(toDateLocale(locale))}
                     </td>
                     <td style={{padding:'8px 10px',fontSize:'0.85rem',color:'#666'}}>{first.location??'–'}</td>
-                    <td style={{padding:'8px 10px',display:'flex',gap:'4px',flexWrap:'wrap'}}>
-                      {gevents.slice(0,3).map(e=>(
-                        <button key={e.id} type="button" style={{fontSize:'0.75rem',padding:'3px 7px'}} onClick={()=>openEdit(e)}>
-                          {new Date(e.start.replace(/Z$/,'')).toLocaleDateString(toDateLocale(locale),{day:'numeric',month:'short'})}
-                        </button>
-                      ))}
-                      {gevents.length>3&&<span className="small" style={{padding:'3px',color:'#888'}}>+{gevents.length-3}</span>}
+                    <td style={{padding:'8px 10px'}}>
+                      <div style={{display:'flex',gap:'4px',flexWrap:'wrap'}}>
+                        {shown.map(e=>(
+                          <button key={e.id} type="button" style={{fontSize:'0.75rem',padding:'3px 7px'}} onClick={()=>openEdit(e)}>
+                            {new Date(e.start.replace(/Z$/,'')).toLocaleDateString(toDateLocale(locale),{day:'numeric',month:'short'})}
+                          </button>
+                        ))}
+                        {!expanded && hidden > 0 && (
+                          <button type="button" style={{fontSize:'0.75rem',padding:'3px 7px',background:'#e0e7ff',color:'#3730a3',border:'none',borderRadius:'5px',cursor:'pointer'}}
+                            onClick={()=>setExpandedGroups(prev=>{const s=new Set(prev);s.add(gid);return s;})}>
+                            +{hidden} ▾
+                          </button>
+                        )}
+                        {expanded && (
+                          <button type="button" style={{fontSize:'0.75rem',padding:'3px 7px',background:'#e0e7ff',color:'#3730a3',border:'none',borderRadius:'5px',cursor:'pointer'}}
+                            onClick={()=>setExpandedGroups(prev=>{const s=new Set(prev);s.delete(gid);return s;})}>
+                            ▴ menej
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );
@@ -315,6 +365,28 @@ export default function AdminEventsPage() {
               <button type="button" style={{background:'#92400e',color:'#fff'}} onClick={()=>void deleteEvent(editEvent.id,true)}>🗑 Zmazať sériu</button>
             )}
           </div>
+          {editEvent.recurrenceGroupId && (
+            <>
+              <hr style={{margin:'1rem 0',border:'none',borderTop:'1px solid #eee'}} />
+              <p style={{fontWeight:700,marginBottom:'0.5rem',fontSize:'0.9rem'}}>Predĺžiť sériu o ďalšie opakovania</p>
+              <div style={{display:'flex',gap:'0.5rem',flexWrap:'wrap',marginBottom:'0.75rem'}}>
+                {WEEK_OPTS.map(d=>(
+                  <label key={d.value} style={{display:'flex',gap:'4px',alignItems:'center',padding:'4px 8px',background:extendDays.includes(d.value as RepeatWeekday)?'#1a1a2e':'#f0f0f0',color:extendDays.includes(d.value as RepeatWeekday)?'#fff':'#333',borderRadius:'6px',cursor:'pointer',fontSize:'0.85rem',fontWeight:600}}>
+                    <input type="checkbox" checked={extendDays.includes(d.value as RepeatWeekday)} onChange={e=>{setExtendDays(prev=>e.target.checked?[...prev,d.value as RepeatWeekday]:prev.filter(x=>x!==d.value));}} style={{display:'none'}} /> {d.label}
+                  </label>
+                ))}
+              </div>
+              <div style={{display:'flex',gap:'0.75rem',alignItems:'flex-end',flexWrap:'wrap'}}>
+                <label style={{flex:1}}>Predĺžiť do
+                  <input type="date" value={extendUntil} onChange={e=>setExtendUntil(e.target.value)} />
+                </label>
+                <button type="button" onClick={()=>void extendSeries()} disabled={extending||!extendUntil||extendDays.length===0}
+                  style={{background:'#059669',color:'#fff',marginBottom:'0.5rem'}}>
+                  {extending?'Pridávam…':'➕ Pridať opakovania'}
+                </button>
+              </div>
+            </>
+          )}
         </Overlay>
       )}
     </section>
