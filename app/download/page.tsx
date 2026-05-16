@@ -22,7 +22,7 @@ export default function DownloadPage() {
       </p>
 
       <a
-        href="https://github.com/akalabeth77/sdkweb/releases/download/v1.0.6/keswing.apk"
+        href="https://github.com/akalabeth77/sdkweb/releases/download/v1.0.7/keswing.apk"
         rel="noreferrer"
         style={{
           display: 'inline-flex',
@@ -43,8 +43,8 @@ export default function DownloadPage() {
 
       <p className="small" style={{ color: '#888', marginTop: '0.5rem' }}>
         {isSk
-          ? 'Verzia 1.0.6 · 22 MB · arm64 (moderné Android telefóny)'
-          : 'Version 1.0.6 · 22 MB · arm64 (modern Android phones)'}
+          ? 'Verzia 1.0.7 · 22 MB · arm64 (moderné Android telefóny)'
+          : 'Version 1.0.7 · 22 MB · arm64 (modern Android phones)'}
       </p>
       <p className="small" style={{ color: '#888', marginTop: '0.25rem' }}>
         {isSk
